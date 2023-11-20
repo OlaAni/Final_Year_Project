@@ -259,7 +259,6 @@ def search(query):
 
     stream = video.streams.filter(only_audio=True).first()
     stream.download(filename=f"musicaudio.mp3")
-    
     sound = AudioSegment.from_file(r"musicaudio.mp3")
     start_time = 0  
     end_time = 30 * 1000
@@ -393,9 +392,9 @@ def chatbot_response(user_input, amoSim, features1=None):
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
         if category == "greetings":
-           return "Orpheus: Hello! How can I assist you?"
+           return "Hello! How can I assist you?"
         elif category == "inquiries":
-           return "Orpheus: I'm just the world's best DJ. How can I assist you?"
+           return "I'm just the world's best DJ. How can I assist you?"
         elif category == "like":
             print("Loading....")  
             # extracted_word = doc[1].text
@@ -407,13 +406,15 @@ def chatbot_response(user_input, amoSim, features1=None):
             features1['label'] = genre1[0]
             label = label_encoder.inverse_transform(features1['label'])[0]
             high = confidence_score(genreProb)
-            print("Confidence Scores of song Genre")
-            for i in high:
-                print(i[0]," :",i[1],"%")
-            return "Orpheus: You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"  
+            # print("Confidence Scores of song Genre")
+            # for i in high:
+            #     print(i[0]," :",i[1],"%")
+
+            strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
+            return strLabel, high
         elif category == "find_increased":
             if features1 is None:
-                return "Orpheus: Exctract a song to use this great feature"
+                return "Exctract a song to use this great feature"
             else:
                 words = [token.text for token in doc if token.is_alpha]
                 valid = False
@@ -442,15 +443,15 @@ def chatbot_response(user_input, amoSim, features1=None):
                     print(value)
                     return find_sim(new_features)
                 else:
-                    return "Orpheus: I'm sorry, but im going to need a valid song feature"
+                    return "I'm sorry, but im going to need a valid song feature"
                 
         elif category == "find_sim":      
             if features1 is None:
-                return "Orpheus: Exctract a song to use this great feature"
+                return "Exctract a song to use this great feature"
             else:
                 if amoSim>=3:
                     amoSim=0
-                    return "Orpheus: I just put on some back to back bangers!!!"
+                    return "I just put on some back to back bangers!!!"
                 else:
                     amoSim = amoSim+1
                     sim = find_sim(features1)
@@ -462,9 +463,9 @@ def chatbot_response(user_input, amoSim, features1=None):
             
         elif category=="general":
             extracted_word = doc.text
-            return "Orpheus:", general(extracted_word)
+            return general(extracted_word)
     else:
-        return "Orpheus: I'm sorry, I don't understand that."
+        return "I'm sorry, I don't understand that."
 
 
 # # Main
@@ -488,11 +489,12 @@ def extract(name):
     features1['label'] = genre1[0]
     label = label_encoder.inverse_transform(features1['label'])[0]
     high = confidence_score(genreProb)
-    print("Orpheus: This song is sounding a lot like the", label," genre. Im saying with", high[0][1],"% confidence")
-    print("Confidence Scores")
-    for i in high:
-        print(i[0]," :",i[1],"%")
-    return features1
+    strLabel="This song is sounding a lot like the ", label," genre. Im saying with ", high[0][1],"% confidence"
+    # print("Orpheus: This song is sounding a lot like the", label," genre. Im saying with", high[0][1],"% confidence")
+    # print("Confidence Scores")
+    # for i in high:
+    #     print(i[0]," :",i[1],"%")
+    return features1,strLabel, high
 
 
 # In[86]:
@@ -501,7 +503,6 @@ def chat():
     print(f"Orpheus: Hello My Name is DJ ORPHEUS, need some songs im here to help")
     amoSim = 0
     while True:
-        
         user_input = input("You: ")
         if user_input.lower() == "extract":
             name = "music/downloaded/musicaudio.mp3"
@@ -517,14 +518,47 @@ def chat():
                 response = chatbot_response(user_input,amoSim, features1)
             print(f"Orpheus: {response}")
 
-from flask import Flask, jsonify
+
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS 
 
 app = Flask(__name__)
+CORS(app) 
 
-@app.route('/api/execute-script', methods=['GET'])
-def execute_script():
-    result = "Hello"
-    return jsonify({'result': result})
+# @app.route('/api/script', methods=['GET'])
+# def script():
+#     result = "Hello"
+#     return jsonify({'result': result})
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+@app.route('/chat', methods=['POST'])
+def chatbot():
+    amoSim = 0
+    data = request.get_json()
+    user_input = data.get('user_input')
+
+    if user_input.lower() == "extract":
+        name = "music/downloaded/musicaudio.mp3"
+        features1, response,high = extract(name)
+        return jsonify({"status":"OK","Orpheus": response, "confidence":high})
+
+    else:
+        try:
+            features1=""
+        except NameError:
+            response,high = chatbot_response(user_input, amoSim)
+            return jsonify({"status":"OK","Orpheus": response, "confidence":high})
+
+        else:
+            response = chatbot_response(user_input, amoSim, features1)
+            return jsonify({"status":"OK","Orpheus": response})
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
