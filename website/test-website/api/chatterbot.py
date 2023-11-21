@@ -343,13 +343,9 @@ def chatbot_response(user_input, amoSim, features1=None):
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
         if category == "greetings":
-           if( features1 is None):
-            return "Hello! How can I assist you?",None,None
-           else:
-                return "Hello! How can I assist you?",None,None,None
-
+            return "Hello! How can I assist you?",None,None,None,None
         elif category == "inquiries":
-           return "I'm just the world's best DJ. How can I assist you?",None,None
+           return "I'm just the world's best DJ. How can I assist you?",None,None,None,None
         elif category == "like":
             print("Loading....")  
             # extracted_word = doc[1].text
@@ -366,12 +362,12 @@ def chatbot_response(user_input, amoSim, features1=None):
             #     print(i[0]," :",i[1],"%")
 
             strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
-            return strLabel, high,features1
+            return strLabel, None, features1,None, high
         elif category == "find_increased":
             if features1 is None:
                 strLabel=  "Exctract a song to use this great feature"
                 
-                return strLabel,None,None
+                return strLabel,None,None,None,None
             else:
                 words = [token.text for token in doc if token.is_alpha]
                 valid = False
@@ -400,15 +396,15 @@ def chatbot_response(user_input, amoSim, features1=None):
                     new_features[features]+= value
                     print(value)
                     songs = find_sim(new_features)
-                    return "Here are some of those increased features", songs, features1,None
+                    return "Here are some of those increased features", songs, features1,None,None
                 else:
                     strLabel = "I'm sorry, but im going to need a valid song feature"
-                    return strLabel, None,None,None
+                    return strLabel, None,None,None,None
                 
         elif category == "find_sim":      
             if features1 is None:
                 strLabel=  "Exctract a song to use this great feature"
-                return strLabel,None,None           
+                return strLabel,None,None,None,None           
             else:
                 if amoSim>=3:
                     amoSim=0
@@ -427,13 +423,13 @@ def chatbot_response(user_input, amoSim, features1=None):
                     spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
                     
 
-                    return "Similiar Songs", sim,features1, spotifySong
+                    return "Similiar Songs", sim,features1, spotifySong,None
             
         elif category=="general":
             extracted_word = doc.text
-            return general(extracted_word)
+            return general(extracted_word),None,None,None,None
     else:
-        return "I'm sorry, I don't understand that.",None,None
+        return "I'm sorry, I don't understand that.",None,None,None,None
 
 
 def extract(name):
@@ -493,28 +489,33 @@ def chatbot():
     amoSim = 0
     data = request.get_json()
     user_input = data.get('user_input')
+
     if user_input.lower() == "extract":
         name = "music/downloaded/musicaudio.mp3"
         features, response,high = extract(name)
         features = features.to_json()
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
     else:
-        if(data.get('features') is None):
-            response,high, features = chatbot_response(user_input, amoSim)
-            if(features!=None):
-                features = features.to_json()
-                
-            return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})    
-        else:
+        if(data.get('features')!=None):
             features1 = data.get('features')
             features1 = pd.read_json(features1)
+        else:
+            features1=None
 
-            response,songs,features,recommendation = chatbot_response(user_input, amoSim, features1)
-            if(features!=None):
+        response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1)
+        if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
+            if(features.empty != True):
                 features = features.to_json()
+
+        if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
+            if(songs.empty != True):
                 songs = songs.to_json()
 
-            return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation})
+
+        return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
+        
+
+
 
 
         
@@ -550,3 +551,105 @@ def chatbot():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+# def chatbot_response(user_input, amoSim, features1=None):
+#     doc = nlp(user_input)
+#     matches = matcher(doc)
+#     if matches:
+#         match_id, start,end = matches[0]
+#         category = nlp.vocab.strings[match_id]
+#         if category == "greetings":
+           
+#            if( features1 is None):
+#             return "Hello! How can I assist you?",None,None
+#            else:
+#                 return "Hello! How can I assist you?",None,None,None
+
+#         elif category == "inquiries":
+#            return "I'm just the world's best DJ. How can I assist you?",None,None
+#         elif category == "like":
+#             print("Loading....")  
+#             # extracted_word = doc[1].text
+#             before, keyword,extracted_word = doc.text.partition(doc[1].text)
+#             search(extracted_word)
+#             features1 = extract_features(r"music/downloaded/musicaudio.mp3")
+#             genre1 = xgb.predict(features1)
+#             genreProb = xgb.predict_proba(features1)
+#             features1['label'] = genre1[0]
+#             label = label_encoder.inverse_transform(features1['label'])[0]
+#             high = confidence_score(genreProb)
+#             # print("Confidence Scores of song Genre")
+#             # for i in high:
+#             #     print(i[0]," :",i[1],"%")
+
+#             strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
+#             return strLabel, high,features1
+#         elif category == "find_increased":
+#             if features1 is None:
+#                 strLabel=  "Exctract a song to use this great feature"
+                
+#                 return strLabel,None,None
+#             else:
+#                 words = [token.text for token in doc if token.is_alpha]
+#                 valid = False
+#                 for s in words:
+#                     if(s in fast_words):
+#                         features = 'tempo'
+#                         value = features1[features]
+#                         value = value/100
+#                         valid=True
+#                     elif(s in slow_words):
+#                         features = 'tempo'
+#                         value = features1[features]
+#                         value = -value/100
+#                         valid=True
+#                     elif(s in loud_words):
+#                         features = 'rms_mean'
+#                         value = 50
+#                         valid=True
+#                     elif(s in quiet_words):
+#                         features = 'rms_mean'
+#                         value = -50
+#                         valid=True
+
+#                 if(valid):
+#                     new_features = features1
+#                     new_features[features]+= value
+#                     print(value)
+#                     songs = find_sim(new_features)
+#                     return "Here are some of those increased features", songs, features1,None
+#                 else:
+#                     strLabel = "I'm sorry, but im going to need a valid song feature"
+#                     return strLabel, None,None,None
+                
+#         elif category == "find_sim":      
+#             if features1 is None:
+#                 strLabel=  "Exctract a song to use this great feature"
+#                 return strLabel,None,None           
+#             else:
+#                 if amoSim>=3:
+#                     amoSim=0
+#                     return "I just put on some back to back bangers!!!"
+#                 else:
+#                     amoSim = amoSim+1
+#                     sim = find_sim(features1)
+#                     songs=[]
+#                     for key, value in sim.items():
+#                         print(key," :",round(value,2),"% similiar")
+                        
+#                         # songs.append(key,round(value,2))
+
+#                     label = label_encoder.inverse_transform(features1['label'])[0]
+#                     # print("Recommendation from Spotify: ",search_spotify(label,features1['tempo']))
+#                     spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
+                    
+
+#                     return "Similiar Songs", sim,features1, spotifySong
+            
+#         elif category=="general":
+#             extracted_word = doc.text
+#             return general(extracted_word)
+#     else:
+#         return "I'm sorry, I don't understand that.",None,None
+
