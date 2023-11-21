@@ -7,45 +7,26 @@ from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 import librosa
 import numpy as np
-
-
 import warnings
 warnings.filterwarnings('ignore')
-
-
-# In[ ]:
-
 
 from pytube import YouTube
 from pydub import AudioSegment
 import youtube_dl
 import os
 
-
-
-# # Model
-
-# In[ ]:
-
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn import preprocessing
+from sklearn.preprocessing import LabelEncoder
 
 df = pd.read_csv(r'data\Data\features_3_sec.csv')
-
-# df = df.drop(['filename'], axis=1)
-
-# df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','label']]
-
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 from sklearn.preprocessing import LabelEncoder
 label_encoder = LabelEncoder()
-
-
 df['label'] =  label_encoder.fit_transform(df['label'])
-
 print(label_encoder.classes_)
-
 y = df[['label']]
 X = df[df.columns.difference(['label'])]
-
 
 ## split both X and y using a ratio of 70% training - 30% testing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
@@ -54,28 +35,15 @@ print(len(X_train), len(X_test), len(y_train), len(y_test))
 xgb = xgboost.XGBClassifier(n_estimators=1000,enable_catergorical=True,learning_rate=0.05)
 xgb.fit(X_train, y_train)
 
-## make predictions on the test portion (predict the labels of the rows from the test portion of X)
 predictions = xgb.predict(X_test)
 
 target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
 
-
 print(classification_report(y_test, predictions, target_names=target_name))
-## can also output the confusion matrix
-# cm = confusion_matrix(y_test, predictions)
-# print(cm)
-
 print("Accuracy: " ,metrics.accuracy_score(y_test, predictions))
 
 cols_when_model_builds = xgb.feature_names_in_
 
-
-# In[ ]:
-
-
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn import preprocessing
-from sklearn.preprocessing import LabelEncoder
 
 def find_sim(data):
     placeHoldername = 'test'
@@ -85,20 +53,14 @@ def find_sim(data):
 
     df_sim = df_sim[['filename','chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 
-
-    from sklearn.preprocessing import LabelEncoder
-    label_encoder = LabelEncoder()
     df_sim['label'] = df_sim['label'].astype("string")
     df_sim['label'] =  label_encoder.fit_transform(df_sim['label'])
-
-
 
 
     combined_df = pd.concat([df_sim, data], ignore_index=True)
 
     combined_df = combined_df.set_index('filename')
 
- 
     labels = combined_df[['label']]
 
     
@@ -136,9 +98,6 @@ def find_pred(data, features, predicted_feature):
     return prediction[0]
 
 
-# In[ ]:
-
-
 def confidence_score(proba):
     from collections import Counter
     confi = {}
@@ -151,16 +110,8 @@ def confidence_score(proba):
     k = Counter(confi)
     
     high = k.most_common(3) 
-    
-    # for i in high:
-    #     print(i[0]," :",i[1]," ")
-
     return high
 
-
-# # Extract Features
-
-# In[ ]:
 
 
 def extract_features(file):
@@ -392,9 +343,13 @@ def chatbot_response(user_input, amoSim, features1=None):
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
         if category == "greetings":
-           return "Hello! How can I assist you?"
+           if( features1 is None):
+            return "Hello! How can I assist you?",None,None
+           else:
+                return "Hello! How can I assist you?",None,None,None
+
         elif category == "inquiries":
-           return "I'm just the world's best DJ. How can I assist you?"
+           return "I'm just the world's best DJ. How can I assist you?",None,None
         elif category == "like":
             print("Loading....")  
             # extracted_word = doc[1].text
@@ -411,10 +366,12 @@ def chatbot_response(user_input, amoSim, features1=None):
             #     print(i[0]," :",i[1],"%")
 
             strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
-            return strLabel, high
+            return strLabel, high,features1
         elif category == "find_increased":
             if features1 is None:
-                return "Exctract a song to use this great feature"
+                strLabel=  "Exctract a song to use this great feature"
+                
+                return strLabel,None,None
             else:
                 words = [token.text for token in doc if token.is_alpha]
                 valid = False
@@ -437,17 +394,21 @@ def chatbot_response(user_input, amoSim, features1=None):
                         features = 'rms_mean'
                         value = -50
                         valid=True
+
                 if(valid):
                     new_features = features1
                     new_features[features]+= value
                     print(value)
-                    return find_sim(new_features)
+                    songs = find_sim(new_features)
+                    return "Here are some of those increased features", songs, features1,None
                 else:
-                    return "I'm sorry, but im going to need a valid song feature"
+                    strLabel = "I'm sorry, but im going to need a valid song feature"
+                    return strLabel, None,None,None
                 
         elif category == "find_sim":      
             if features1 is None:
-                return "Exctract a song to use this great feature"
+                strLabel=  "Exctract a song to use this great feature"
+                return strLabel,None,None           
             else:
                 if amoSim>=3:
                     amoSim=0
@@ -455,29 +416,24 @@ def chatbot_response(user_input, amoSim, features1=None):
                 else:
                     amoSim = amoSim+1
                     sim = find_sim(features1)
+                    songs=[]
                     for key, value in sim.items():
                         print(key," :",round(value,2),"% similiar")
+                        
+                        # songs.append(key,round(value,2))
+
                     label = label_encoder.inverse_transform(features1['label'])[0]
-                    print("Recommendation from Spotify: ",search_spotify(label,features1['tempo']))
-                    return "Similiar Songs"
+                    # print("Recommendation from Spotify: ",search_spotify(label,features1['tempo']))
+                    spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
+                    
+
+                    return "Similiar Songs", sim,features1, spotifySong
             
         elif category=="general":
             extracted_word = doc.text
             return general(extracted_word)
     else:
-        return "I'm sorry, I don't understand that."
-
-
-# # Main
-
-# * add extract feature depending on download location
-# * add more word features in the dictionary
-# * clean prints
-# * change find_increased features
-# * search features change
-# * spotify api
-
-# In[85]:
+        return "I'm sorry, I don't understand that.",None,None
 
 
 def extract(name):
@@ -496,8 +452,6 @@ def extract(name):
     #     print(i[0]," :",i[1],"%")
     return features1,strLabel, high
 
-
-# In[86]:
 
 def chat():
     print(f"Orpheus: Hello My Name is DJ ORPHEUS, need some songs im here to help")
@@ -539,33 +493,60 @@ def chatbot():
     amoSim = 0
     data = request.get_json()
     user_input = data.get('user_input')
-
     if user_input.lower() == "extract":
         name = "music/downloaded/musicaudio.mp3"
-        features1, response,high = extract(name)
-        return jsonify({"status":"OK","Orpheus": response, "confidence":high})
-
+        features, response,high = extract(name)
+        features = features.to_json()
+        return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
     else:
-        try:
-            features1=""
-        except NameError:
-            response,high = chatbot_response(user_input, amoSim)
-            return jsonify({"status":"OK","Orpheus": response, "confidence":high})
-
+        if(data.get('features') is None):
+            response,high, features = chatbot_response(user_input, amoSim)
+            if(features!=None):
+                features = features.to_json()
+                
+            return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})    
         else:
-            response = chatbot_response(user_input, amoSim, features1)
-            return jsonify({"status":"OK","Orpheus": response})
+            features1 = data.get('features')
+            features1 = pd.read_json(features1)
+
+            response,songs,features,recommendation = chatbot_response(user_input, amoSim, features1)
+            if(features!=None):
+                features = features.to_json()
+                songs = songs.to_json()
+
+            return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation})
 
 
+        
 
+    # if(data.get('features') is None):
+    #         features1=None
+    # else:
+    #     features1 = data.get('features')
+    #     features1 = pd.read_json(features1)
 
+    # if user_input.lower() == "extract":
+    #     name = "music/downloaded/musicaudio.mp3"
+    #     features, response,high = extract(name)
+    #     features = features.to_json()
+    #     return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
+
+    # else:
+    #     if(features1.empty() or features1==None):
+    #         response,high, features = chatbot_response(user_input, amoSim)
+    #         return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})
+    #     else:
+    #         print(features)
+    #         response,songs,features,recommendation = chatbot_response(user_input, amoSim, features1)
+    #         return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation})
+
+        # try:
+        #     print(features1)
+        # except NameError:
+        #     response,high, features = chatbot_response(user_input, amoSim)
+        #     return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})
+
+        # else:
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-# In[87]:
-
-
-#cache results 
-#https://www.turing.com/kb/a-comprehensive-guide-to-named-entity-recognition
-
