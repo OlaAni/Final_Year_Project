@@ -1,14 +1,10 @@
 "use client";
-
-import Image from "next/image";
-import styles from "./page.module.css";
-import Orpheus from "./test";
-import { NextUIProvider } from "@nextui-org/react";
-
-export default function Home() {
+const { Orpheus } = require("@/app/test.js");
+import styles from "../../public/styles.css";
+export default function Home({}) {
   return (
-    <NextUIProvider>
+    <>
       <Orpheus />
-    </NextUIProvider>
+    </>
   );
 }

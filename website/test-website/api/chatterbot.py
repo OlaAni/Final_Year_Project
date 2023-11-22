@@ -483,17 +483,35 @@ CORS(app)
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
+@app.route('/upload', methods=['POST'])
+def upload():
+    print("upload: ", request.form.get('user_input'))
+    data = request.files['music_file']
+
+    data.save('downloadedTest.mp3')
+    print(data) 
+    return jsonify({"status":"OK"})
+
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
     amoSim = 0
-    data = request.get_json()
-    user_input = data.get('user_input')
+    if(request.form.get('user_input') is None):
+        data = request.get_json()
+        user_input = data.get('user_input')
+        extraction=""
 
-    if user_input.lower() == "extract":
-        name = "music/downloaded/musicaudio.mp3"
+    else:
+        extraction = request.form.get('user_input')
+
+    if(extraction == 'extract'):
+        data = request.files['music_file']
+        name = "downloadedTest.mp3"
+        data.save(name)
+
         features, response,high = extract(name)
         features = features.to_json()
+
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
     else:
         if(data.get('features')!=None):
@@ -503,6 +521,7 @@ def chatbot():
             features1=None
 
         response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1)
+
         if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
             if(features.empty != True):
                 features = features.to_json()
@@ -517,7 +536,11 @@ def chatbot():
 
 
 
-
+    # if user_input.lower() == "extract":
+        # name = "music/downloaded/musicaudio.mp3"
+        # features, response,high = extract(name)
+        # features = features.to_json()
+        # return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
         
 
     # if(data.get('features') is None):

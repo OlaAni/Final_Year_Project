@@ -1,6 +1,10 @@
+import React from "react";
+
 import { useState } from "react";
 
-const Orpheus = () => {
+import styles from "../../public/styles.css";
+
+function Orpheus() {
   const [userInput, setUserInput] = useState("");
   const [response, setResponse] = useState("");
   const [confidence, setConfidence] = useState("");
@@ -58,25 +62,69 @@ const Orpheus = () => {
     }
   }
 
+  async function uploadFile(event) {
+    const url = "http://localhost:5000/chat";
+    const file = event.target.files[0];
+
+    const formData = new FormData();
+
+    formData.append("user_input", "extract");
+    formData.append("music_file", file);
+
+    var options = {
+      method: "POST",
+      body: formData,
+    };
+
+    const response = await fetch(url, options);
+    const result = await response.json();
+
+    if (result.status == "OK") {
+      setResponse(result.Orpheus);
+
+      if (result.confidence != null) {
+        setConfidence(result.confidence);
+      }
+
+      if (result.features != null) {
+        setFeatures(result.features);
+      }
+    }
+  }
+
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={userInput}
-          id="user_input"
-          onChange={handleUserInput}
-        />
-        <button>Chat</button>
-      </form>
+    <>
+      <div className="container">
+        <div className="column">
+          <p>features: {features}</p>
+          <p>songs : {songs}</p>
+          <p>Spotify : {spotifySong}</p>
+        </div>
 
-      <p>Orpheus: {response}</p>
-      <p>Confidence: {confidence}</p>
-      <p>features: {features}</p>
-      <p>songs : {songs}</p>
-      <p>Spotify : {spotifySong}</p>
-    </div>
+        <div className="column">
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              value={userInput}
+              id="user_input"
+              onChange={handleUserInput}
+            />
+            <button>Chat</button>
+          </form>
+
+          <p>Orpheus: {response}</p>
+          <p>Confidence: {confidence}</p>
+        </div>
+
+        <div className="column">
+          <input type="file" onChange={uploadFile} />
+        </div>
+      </div>
+    </>
   );
-};
+}
 
-export default Orpheus;
+// export default Orpheus;
+module.exports = {
+  Orpheus,
+};
