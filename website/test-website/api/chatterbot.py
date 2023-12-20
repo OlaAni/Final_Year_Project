@@ -8,18 +8,18 @@ import librosa
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-
 from pytube import YouTube
 from pydub import AudioSegment
 import youtube_dl
 import os
 import xgboost as xgbo
-
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
 import xgboost
 
+
+#model
 df = pd.read_csv(r'data\Data\features_3_sec.csv')
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 from sklearn.preprocessing import LabelEncoder
@@ -51,6 +51,8 @@ cols_when_model_builds = xgb.feature_names_in_
 # xgb = xgbo.Booster(model_file=r'model.model')
 # cols_when_model_builds = xgb.feature_names
 
+
+#find sim music function
 def find_sim(data):
     placeHoldername = 'test'
     data['filename'] = placeHoldername
@@ -82,7 +84,7 @@ def find_sim(data):
 
 
 
-
+#users linear regression to predict features of previusly liked music
 def find_pred(data, features, predicted_feature):
     from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LinearRegression
@@ -99,7 +101,7 @@ def find_pred(data, features, predicted_feature):
 
     return prediction[0]
 
-
+#returns the highest scores
 def confidence_score(proba):
     from collections import Counter
     confi = {}
@@ -115,7 +117,7 @@ def confidence_score(proba):
     return high
 
 
-
+#extract mfeatures from a song
 def extract_features(file):
     y, sr = librosa.load(file)
 
@@ -175,7 +177,7 @@ def extract_features(file):
 
     return features
 
-
+#search youtube for a song
 def search(query):
     from pytube import YouTube
     from googleapiclient.discovery import build
@@ -184,12 +186,7 @@ def search(query):
 
     youtube = build('youtube', 'v3', developerKey=api_key)
 
-    search_response = youtube.search().list(
-        q=query,
-        type='video',
-        part='id,snippet',
-        maxResults=1 
-    ).execute()
+    search_response = youtube.search().list(q=query,type='video',part='id,snippet',maxResults=1).execute()
 
     for search_result in search_response.get('items', []):
         video_id = search_result['id']['videoId']
