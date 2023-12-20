@@ -1,4 +1,3 @@
-import xgboost
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report, confusion_matrix
@@ -14,10 +13,12 @@ from pytube import YouTube
 from pydub import AudioSegment
 import youtube_dl
 import os
+import xgboost as xgbo
 
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
+import xgboost
 
 df = pd.read_csv(r'data\Data\features_3_sec.csv')
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
@@ -29,6 +30,7 @@ y = df[['label']]
 X = df[df.columns.difference(['label'])]
 
 ## split both X and y using a ratio of 70% training - 30% testing
+##add min maxing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 print(len(X_train), len(X_test), len(y_train), len(y_test))
 
@@ -44,6 +46,10 @@ print("Accuracy: " ,metrics.accuracy_score(y_test, predictions))
 
 cols_when_model_builds = xgb.feature_names_in_
 
+# xgb.save_model('model.model')
+
+# xgb = xgbo.Booster(model_file=r'model.model')
+# cols_when_model_builds = xgb.feature_names
 
 def find_sim(data):
     placeHoldername = 'test'
@@ -61,24 +67,20 @@ def find_sim(data):
 
     combined_df = combined_df.set_index('filename')
 
-    labels = combined_df[['label']]
+    genre = combined_df[['label']]
 
-    
+    #https://naomy-gomes.medium.com/the-cosine-similarity-and-its-use-in-recommendation-systems-cb2ebd811ce1 + https://www.kaggle.com/code/andradaolteanu/work-w-audio-data-visualise-classify-recommend/notebook#Machine-Learning-Classification
     scaled = preprocessing.scale(combined_df)
-    similarity = cosine_similarity(scaled)
-    sim_df_labels = pd.DataFrame(similarity)
-    sim_df_names = sim_df_labels.set_index(labels.index)
-    sim_df_names.columns = labels.index
+    cos_similarity = cosine_similarity(scaled)
+    new_data = pd.DataFrame(cos_similarity)
+    new_data_names = new_data.set_index(genre.index)
+    new_data_names.columns = genre.index
 
-    series = sim_df_names[placeHoldername].sort_values(ascending=False)
+    series = new_data_names[placeHoldername].sort_values(ascending=False)
     series = series.drop(placeHoldername)
     return series.head(3)
 
 
-
-
-
-# In[ ]:
 
 
 def find_pred(data, features, predicted_feature):
@@ -107,9 +109,9 @@ def confidence_score(proba):
         confi[target_name[i]] = rounded
         i = i+1
 
-    k = Counter(confi)
+    counter = Counter(confi)
     
-    high = k.most_common(3) 
+    high = counter.most_common(3) 
     return high
 
 
@@ -167,17 +169,11 @@ def extract_features(file):
                              'rolloff_mean':[rolloff_mean],'rolloff_var':[rolloff_var],'zero_crossing_rate_mean':[zero_crossing_rate_mean],'zero_crossing_rate_var':[zero_crossing_rate_var],
                              'harmony_mean':[harmony_mean],'harmony_var':[harmony_var],'tempo':[tempo],})
     
+    print(cols_when_model_builds)
 
     features = features.reindex(columns=cols_when_model_builds)
 
-    # features = features.reshape(-1,1)
     return features
-
-
-
-# # Search Youtube
-
-# In[ ]:
 
 
 def search(query):
@@ -186,10 +182,8 @@ def search(query):
 
     api_key = 'AIzaSyCghPkifWFcLs_iN5CCvLIlQwvWBXxIxxY'
 
-    # Initialize the YouTube Data API
     youtube = build('youtube', 'v3', developerKey=api_key)
 
-    # Perform a video search
     search_response = youtube.search().list(
         q=query,
         type='video',
@@ -197,7 +191,6 @@ def search(query):
         maxResults=1 
     ).execute()
 
-    # Iterate through the search results and get video information
     for search_result in search_response.get('items', []):
         video_id = search_result['id']['videoId']
         # video_title = search_result['snippet']['title']
@@ -218,10 +211,6 @@ def search(query):
 
     audio_segment.export(r"music/downloaded/musicaudio.mp3", format="mp3")
 
-
-# # Chatbot(Orpheus)
-
-# In[ ]:
 
 
 import spacy
@@ -283,11 +272,6 @@ for category, patterns in responses.items():
         matcher.add(category, [pattern])
 
 
-
-
-# In[ ]:
-
-
 def general(user_input):
     ##fill with general conversation about 
     ##history of prevois questions
@@ -300,18 +284,15 @@ def general(user_input):
     return newString
 
 
-# In[83]:
-
-
 def search_spotify(genres, tempo):
     import spotipy
     from spotipy.oauth2 import SpotifyClientCredentials
 
-    client_id = 'b0715167b5814e2c92afb73034ed1416'
-    client_secret = 'f25f4de9272c49948019dc270b2413d8'
+    SPOTIPY_CLIENT_ID = 'b0715167b5814e2c92afb73034ed1416'
+    SPOTIPY_CLIENT_SECRET = 'f25f4de9272c49948019dc270b2413d8'
 
-    client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
-    sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+    client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
+    spotifySearcher = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 
 
@@ -321,19 +302,16 @@ def search_spotify(genres, tempo):
     max = target_tempo * 1.1
 
 
-    recommendations = sp.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
+    recommendations = spotifySearcher.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
 
     if recommendations['tracks']:
-        first_track = recommendations['tracks'][0]
-        track_name = first_track['name']
-        artist_name = first_track['artists'][0]['name']
+        song = recommendations['tracks'][0]
+        song_name = song['name']
+        artist_name = song['artists'][0]['name']
 
-        return f'Song: {track_name} by {artist_name}'
+        return f'Song: {song_name} by {artist_name}'
     else:
         return 'No recommendations found from spotify.'
-
-
-# In[84]:
 
 
 def chatbot_response(user_input, amoSim, features1=None):
@@ -357,9 +335,6 @@ def chatbot_response(user_input, amoSim, features1=None):
             features1['label'] = genre1[0]
             label = label_encoder.inverse_transform(features1['label'])[0]
             high = confidence_score(genreProb)
-            # print("Confidence Scores of song Genre")
-            # for i in high:
-            #     print(i[0]," :",i[1],"%")
 
             strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
             return strLabel, None, features1,None, high
@@ -415,14 +390,10 @@ def chatbot_response(user_input, amoSim, features1=None):
                     songs=[]
                     for key, value in sim.items():
                         print(key," :",round(value,2),"% similiar")
-                        
-                        # songs.append(key,round(value,2))
 
                     label = label_encoder.inverse_transform(features1['label'])[0]
-                    # print("Recommendation from Spotify: ",search_spotify(label,features1['tempo']))
                     spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
                     
-
                     return "Similiar Songs", sim,features1, spotifySong,None
             
         elif category=="general":
@@ -436,16 +407,15 @@ def extract(name):
     print("Loading....")  
     features1 = extract_features(name)
     print("Extracted")
+
     genre1 = xgb.predict(features1)
     genreProb = xgb.predict_proba(features1)
+
     features1['label'] = genre1[0]
     label = label_encoder.inverse_transform(features1['label'])[0]
     high = confidence_score(genreProb)
+
     strLabel="This song is sounding a lot like the ", label," genre. Im saying with ", high[0][1],"% confidence"
-    # print("Orpheus: This song is sounding a lot like the", label," genre. Im saying with", high[0][1],"% confidence")
-    # print("Confidence Scores")
-    # for i in high:
-    #     print(i[0]," :",i[1],"%")
     return features1,strLabel, high
 
 
@@ -476,13 +446,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app) 
 
-# @app.route('/api/script', methods=['GET'])
-# def script():
-#     result = "Hello"
-#     return jsonify({'result': result})
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
 @app.route('/upload', methods=['POST'])
 def upload():
     print("upload: ", request.form.get('user_input'))
@@ -532,147 +495,6 @@ def chatbot():
 
 
         return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
-        
-
-
-
-    # if user_input.lower() == "extract":
-        # name = "music/downloaded/musicaudio.mp3"
-        # features, response,high = extract(name)
-        # features = features.to_json()
-        # return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
-        
-
-    # if(data.get('features') is None):
-    #         features1=None
-    # else:
-    #     features1 = data.get('features')
-    #     features1 = pd.read_json(features1)
-
-    # if user_input.lower() == "extract":
-    #     name = "music/downloaded/musicaudio.mp3"
-    #     features, response,high = extract(name)
-    #     features = features.to_json()
-    #     return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
-
-    # else:
-    #     if(features1.empty() or features1==None):
-    #         response,high, features = chatbot_response(user_input, amoSim)
-    #         return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})
-    #     else:
-    #         print(features)
-    #         response,songs,features,recommendation = chatbot_response(user_input, amoSim, features1)
-    #         return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation})
-
-        # try:
-        #     print(features1)
-        # except NameError:
-        #     response,high, features = chatbot_response(user_input, amoSim)
-        #     return jsonify({"status":"OK","Orpheus": response, "confidence":high, "features":features})
-
-        # else:
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-# def chatbot_response(user_input, amoSim, features1=None):
-#     doc = nlp(user_input)
-#     matches = matcher(doc)
-#     if matches:
-#         match_id, start,end = matches[0]
-#         category = nlp.vocab.strings[match_id]
-#         if category == "greetings":
-           
-#            if( features1 is None):
-#             return "Hello! How can I assist you?",None,None
-#            else:
-#                 return "Hello! How can I assist you?",None,None,None
-
-#         elif category == "inquiries":
-#            return "I'm just the world's best DJ. How can I assist you?",None,None
-#         elif category == "like":
-#             print("Loading....")  
-#             # extracted_word = doc[1].text
-#             before, keyword,extracted_word = doc.text.partition(doc[1].text)
-#             search(extracted_word)
-#             features1 = extract_features(r"music/downloaded/musicaudio.mp3")
-#             genre1 = xgb.predict(features1)
-#             genreProb = xgb.predict_proba(features1)
-#             features1['label'] = genre1[0]
-#             label = label_encoder.inverse_transform(features1['label'])[0]
-#             high = confidence_score(genreProb)
-#             # print("Confidence Scores of song Genre")
-#             # for i in high:
-#             #     print(i[0]," :",i[1],"%")
-
-#             strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
-#             return strLabel, high,features1
-#         elif category == "find_increased":
-#             if features1 is None:
-#                 strLabel=  "Exctract a song to use this great feature"
-                
-#                 return strLabel,None,None
-#             else:
-#                 words = [token.text for token in doc if token.is_alpha]
-#                 valid = False
-#                 for s in words:
-#                     if(s in fast_words):
-#                         features = 'tempo'
-#                         value = features1[features]
-#                         value = value/100
-#                         valid=True
-#                     elif(s in slow_words):
-#                         features = 'tempo'
-#                         value = features1[features]
-#                         value = -value/100
-#                         valid=True
-#                     elif(s in loud_words):
-#                         features = 'rms_mean'
-#                         value = 50
-#                         valid=True
-#                     elif(s in quiet_words):
-#                         features = 'rms_mean'
-#                         value = -50
-#                         valid=True
-
-#                 if(valid):
-#                     new_features = features1
-#                     new_features[features]+= value
-#                     print(value)
-#                     songs = find_sim(new_features)
-#                     return "Here are some of those increased features", songs, features1,None
-#                 else:
-#                     strLabel = "I'm sorry, but im going to need a valid song feature"
-#                     return strLabel, None,None,None
-                
-#         elif category == "find_sim":      
-#             if features1 is None:
-#                 strLabel=  "Exctract a song to use this great feature"
-#                 return strLabel,None,None           
-#             else:
-#                 if amoSim>=3:
-#                     amoSim=0
-#                     return "I just put on some back to back bangers!!!"
-#                 else:
-#                     amoSim = amoSim+1
-#                     sim = find_sim(features1)
-#                     songs=[]
-#                     for key, value in sim.items():
-#                         print(key," :",round(value,2),"% similiar")
-                        
-#                         # songs.append(key,round(value,2))
-
-#                     label = label_encoder.inverse_transform(features1['label'])[0]
-#                     # print("Recommendation from Spotify: ",search_spotify(label,features1['tempo']))
-#                     spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
-                    
-
-#                     return "Similiar Songs", sim,features1, spotifySong
-            
-#         elif category=="general":
-#             extracted_word = doc.text
-#             return general(extracted_word)
-#     else:
-#         return "I'm sorry, I don't understand that.",None,None
-
