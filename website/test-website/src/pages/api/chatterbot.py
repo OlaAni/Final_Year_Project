@@ -85,21 +85,61 @@ def find_sim(data):
 
 
 #users linear regression to predict features of previusly liked music
-def find_pred(data, features, predicted_feature):
+def find_pred(result):
+    import json
+    import pandas as pd
     from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LinearRegression
 
-    features = features.drop(['filename'], axis=1)
-
-    X_train, X_test, y_train, y_test = train_test_split(data, data[predicted_feature], test_size=0.2)
-
     model = LinearRegression()
-    model.fit(X_train, y_train)
+
+    dfs = []
+
+    if(result is None):
+        return None
+    
+
+    df = pd.DataFrame.from_dict(result, orient='index')
+    dfs.append(df)
 
 
-    prediction = model.predict(features)
+    combined_df = pd.concat(dfs, ignore_index=True)
 
-    return prediction[0]
+    newData=[]
+    for i in range(len(df)):
+        y = json.loads(combined_df[0][i])
+        newData.append(y)
+
+    if(len(newData)<3):
+        return None
+
+    newData = pd.DataFrame(newData)
+
+    finalDf = pd.DataFrame()
+    for i in range(len(newData)):
+        df = pd.DataFrame([newData[0][i]])
+        finalDf = pd.concat([finalDf, df], ignore_index=True)
+
+
+    # finalDf =  finalDf.drop(['label'], axis=1)
+
+    features = pd.DataFrame(columns=finalDf.columns)
+
+    for column in finalDf:
+        X_train, X_test, y_train, y_test = train_test_split(finalDf, finalDf[column], test_size=0.2)
+        model.fit(X_train, y_train)
+        prediction = model.predict(X_test)
+        features.loc[0, column] = prediction[0]  # Assuming you want to update the first row (index 0)
+        # print(column,":",prediction[0])
+        
+    
+
+
+
+    return features
+
+
+
 
 #returns the highest scores
 def confidence_score(proba):
@@ -171,9 +211,10 @@ def extract_features(file):
                              'rolloff_mean':[rolloff_mean],'rolloff_var':[rolloff_var],'zero_crossing_rate_mean':[zero_crossing_rate_mean],'zero_crossing_rate_var':[zero_crossing_rate_var],
                              'harmony_mean':[harmony_mean],'harmony_var':[harmony_var],'tempo':[tempo],})
     
-    print(cols_when_model_builds)
 
     features = features.reindex(columns=cols_when_model_builds)
+    print(features)
+
 
     return features
 
@@ -235,6 +276,9 @@ responses = {
 
     "find_increased": [
         [{"LOWER": "find"}],
+    ],
+    "predicitions": [
+        [{"LOWER": "recos"}],
     ],
 
     "find_sim": [
@@ -311,7 +355,7 @@ def search_spotify(genres, tempo):
         return 'No recommendations found from spotify.'
 
 
-def chatbot_response(user_input, amoSim, features1=None):
+def chatbot_response(user_input, amoSim, features1=None, userID=None):
     doc = nlp(user_input)
     matches = matcher(doc)
     if matches:
@@ -396,6 +440,27 @@ def chatbot_response(user_input, amoSim, features1=None):
         elif category=="general":
             extracted_word = doc.text
             return general(extracted_word),None,None,None,None
+        
+        elif category=="predicitions":
+            print("predicitions")
+            from firebase import firebase
+            firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
+            result = firebase.get('/users', userID)
+            pred= find_pred(result)
+
+            if pred is None:
+                return "Upload some more songs", None,None, None,None
+
+            sim = find_sim(pred)
+            songs=[]
+            for key, value in sim.items():
+                print(key," :",round(value,2),"% similiar")
+
+            # label = label_encoder.inverse_transform(pred['label'])[0]
+            # spotifySong = "Recommendation from Spotify: ",search_spotify(label,pred['tempo'])
+                    
+            return "I have some songs that i think you might like", sim,pred, None,None
+            
     else:
         return "I'm sorry, I don't understand that.",None,None,None,None
 
@@ -460,7 +525,6 @@ def chatbot():
         data = request.get_json()
         user_input = data.get('user_input')
         extraction=""
-
     else:
         extraction = request.form.get('user_input')
 
@@ -468,9 +532,8 @@ def chatbot():
         data = request.files['music_file']
         name = "downloadedTest.mp3"
         data.save(name)
-
         features, response,high = extract(name)
-        features = features.to_json()
+        features = features.to_json(orient='records')
 
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
     else:
@@ -480,11 +543,13 @@ def chatbot():
         else:
             features1=None
 
-        response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1)
+        userID = data.get('userID')
+        print("User: ",userID)
+        response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1, userID=userID)
 
         if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
             if(features.empty != True):
-                features = features.to_json()
+                features = features.to_json(orient='records')
 
         if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
             if(songs.empty != True):

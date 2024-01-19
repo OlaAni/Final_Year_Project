@@ -1,20 +1,19 @@
 import React from "react";
 
 import { useState } from "react";
-import { getDatabase, ref, child, push, set } from "firebase/database";
+import { ref, push, set } from "firebase/database";
 const { app, database } = require("@/components/firebase");
-import { getIronSession } from "iron-session";
 
+import { NextUIProvider } from "@nextui-org/react";
 import {
   Button,
   Link,
-  Image,
-  Navbar,
+  Table,
+  TableColumn,
+  Grid,
   Spacer,
-  Text,
-  Modal,
-  Card,
 } from "@nextui-org/react";
+
 function Orpheus({ userID }) {
   const [userInput, setUserInput] = useState("");
   const [response, setResponse] = useState("");
@@ -36,15 +35,18 @@ function Orpheus({ userID }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user_input: userInput }),
+      body: JSON.stringify({ user_input: userInput, userID: userID }),
     };
 
     if (!features == null || !features.trim().length == 0) {
       options.body = JSON.stringify({
         user_input: userInput,
         features: features,
+        userID: userID,
       });
     }
+
+    console.log(userID);
 
     const response = await fetch(url, options);
     const result = await response.json();
@@ -103,7 +105,6 @@ function Orpheus({ userID }) {
         console.log(userID);
         const dataRef = ref(database, "users/" + userID);
 
-        // Push the data
         const newPushRef = push(dataRef);
         set(newPushRef, result.features)
           .then(() => {
@@ -117,15 +118,19 @@ function Orpheus({ userID }) {
   }
 
   return (
-    <>
-      <div className="container">
-        <div className="column">
+    <NextUIProvider>
+      <Grid.Container gap={2} justify="center">
+        <Grid xs={4} direction="column">
           <p>features: {features}</p>
+          <Spacer y={3} />
           <p>songs : {songs}</p>
-          <p>Spotify : {spotifySong}</p>
-        </div>
-
-        <div className="column">
+          <Spacer y={3} />
+          <p>Spotify : {spotifySong}</p>{" "}
+        </Grid>
+        <Grid xs={4} direction="column">
+          {" "}
+          <p>Orpheus: {response}</p>
+          <Spacer y={3} />
           <form onSubmit={handleSubmit}>
             <input
               type="text"
@@ -133,28 +138,19 @@ function Orpheus({ userID }) {
               id="user_input"
               onChange={handleUserInput}
             />
-            {/* <button>Chat</button> */}
-            <Button
-              auto
-              css={{
-                color: "$buttonSecondary",
-                backgroundColor: "$buttonPrimary",
-              }}
-              onPress={handleSubmit}
-            >
+            <Button color="primary" onPress={handleSubmit}>
               Chat
             </Button>
           </form>
-
-          <p>Orpheus: {response}</p>
-          <p>Confidence: {confidence}</p>
-        </div>
-
-        <div className="column">
+        </Grid>
+        <Grid xs={4} direction="column">
           <input type="file" onChange={uploadFile} />
-        </div>
-      </div>
-    </>
+          <Spacer y={3} />
+
+          <p>Confidence: {confidence}</p>
+        </Grid>
+      </Grid.Container>
+    </NextUIProvider>
   );
 }
 

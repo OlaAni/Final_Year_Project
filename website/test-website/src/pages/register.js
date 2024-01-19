@@ -38,7 +38,7 @@ export default function Register() {
     const response = await fetch(endpoint, options);
     const result = await response.json();
     if (result.status == "OK") {
-      router.push("/");
+      router.push("/login");
     } else {
       alert(result.status);
     }
