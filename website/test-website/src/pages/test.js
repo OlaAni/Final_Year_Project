@@ -1,10 +1,21 @@
 import React from "react";
 
 import { useState } from "react";
+import { getDatabase, ref, child, push, set } from "firebase/database";
+const { app, database } = require("@/components/firebase");
+import { getIronSession } from "iron-session";
 
-import styles from "../../public/styles.css";
-
-function Orpheus() {
+import {
+  Button,
+  Link,
+  Image,
+  Navbar,
+  Spacer,
+  Text,
+  Modal,
+  Card,
+} from "@nextui-org/react";
+function Orpheus({ userID }) {
   const [userInput, setUserInput] = useState("");
   const [response, setResponse] = useState("");
   const [confidence, setConfidence] = useState("");
@@ -17,7 +28,7 @@ function Orpheus() {
   };
 
   async function handleSubmit(event) {
-    event.preventDefault();
+    // event.preventDefault();
     const url = "http://localhost:5000/chat";
 
     var options = {
@@ -88,6 +99,19 @@ function Orpheus() {
 
       if (result.features != null) {
         setFeatures(result.features);
+
+        console.log(userID);
+        const dataRef = ref(database, "users/" + userID);
+
+        // Push the data
+        const newPushRef = push(dataRef);
+        set(newPushRef, result.features)
+          .then(() => {
+            console.log("Data pushed successfully!");
+          })
+          .catch((error) => {
+            console.error("Error pushing data:", error);
+          });
       }
     }
   }
@@ -109,7 +133,17 @@ function Orpheus() {
               id="user_input"
               onChange={handleUserInput}
             />
-            <button>Chat</button>
+            {/* <button>Chat</button> */}
+            <Button
+              auto
+              css={{
+                color: "$buttonSecondary",
+                backgroundColor: "$buttonPrimary",
+              }}
+              onPress={handleSubmit}
+            >
+              Chat
+            </Button>
           </form>
 
           <p>Orpheus: {response}</p>
