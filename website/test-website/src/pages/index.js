@@ -2,11 +2,12 @@
 const { Orpheus } = require("@/pages/test.js");
 import { NextUIProvider } from "@nextui-org/react";
 import { getIronSession } from "iron-session";
+const { Nav } = require("@/components/Nav");
 
 export default function Home({ userID }) {
   return (
     <NextUIProvider>
-      <a href="profile">Profile</a>
+      <Nav />
       <Orpheus userID={userID} />
     </NextUIProvider>
   );
