@@ -1,6 +1,4 @@
-import React from "react";
-
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 const { app, database } = require("@/components/firebase");
 
@@ -12,15 +10,50 @@ import {
   TableColumn,
   Grid,
   Spacer,
+  Text,
 } from "@nextui-org/react";
 
 function Orpheus({ userID }) {
   const [userInput, setUserInput] = useState("");
   const [response, setResponse] = useState("");
-  const [confidence, setConfidence] = useState("");
+  const [confidence, setConfidence] = useState([""]);
   const [features, setFeatures] = useState("");
   const [songs, setSongs] = useState("");
   const [spotifySong, setSpotifySong] = useState("");
+  const [messages, setMessages] = useState([""]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const ChatWindow = ({ messages }) => {
+    return (
+      <div>
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : (
+          messages.map((message, index) => <div key={index}>{message}</div>)
+        )}
+      </div>
+    );
+  };
+
+  const ConfidenceScores = ({ scores }) => {
+    return (
+      <div>
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : (
+          scores.map((message, index) => (
+            <div key={index}>
+              {message[0]} : {message[1]}%
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
+
+  const addMessage = (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  };
 
   const handleUserInput = (event) => {
     setUserInput(event.target.value);
@@ -46,14 +79,16 @@ function Orpheus({ userID }) {
       });
     }
 
-    console.log(userID);
+    addMessage("User: " + userInput);
+    setIsLoading(true);
 
     const response = await fetch(url, options);
     const result = await response.json();
 
     // alert(result.status);
     if (result.status == "OK") {
-      setResponse(result.Orpheus);
+      // setResponse(result.Orpheus);
+      addMessage("Orpheus: " + result.Orpheus);
 
       if (result.confidence != null) {
         setConfidence(result.confidence);
@@ -73,6 +108,7 @@ function Orpheus({ userID }) {
     } else {
       alert("Status: " + result.status);
     }
+    setIsLoading(false);
   }
 
   async function uploadFile(event) {
@@ -88,15 +124,18 @@ function Orpheus({ userID }) {
       method: "POST",
       body: formData,
     };
+    setIsLoading(true);
 
     const response = await fetch(url, options);
     const result = await response.json();
 
     if (result.status == "OK") {
-      setResponse(result.Orpheus);
+      // setResponse(result.Orpheus);
+      addMessage("Orpheus: " + result.Orpheus);
 
       if (result.confidence != null) {
         setConfidence(result.confidence);
+        console.log(result.confidence);
       }
 
       if (result.features != null) {
@@ -115,21 +154,27 @@ function Orpheus({ userID }) {
           });
       }
     }
+    setIsLoading(false);
   }
 
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
         <Grid xs={4} direction="column">
-          <p>features: {features}</p>
+          <Text>Features</Text>
+          <Text style={{ overflowWrap: "break-word" }}>
+            features: {features}
+          </Text>
           <Spacer y={3} />
-          <p>songs : {songs}</p>
+          <Text>Songs</Text>
+          <Text style={{ overflowWrap: "break-word" }}>{songs} </Text>
+
           <Spacer y={3} />
-          <p>Spotify : {spotifySong}</p>{" "}
+          <Text>Spotify</Text>
+          <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
         </Grid>
         <Grid xs={4} direction="column">
-          {" "}
-          <p>Orpheus: {response}</p>
+          <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
           <form onSubmit={handleSubmit}>
             <input
@@ -146,8 +191,8 @@ function Orpheus({ userID }) {
         <Grid xs={4} direction="column">
           <input type="file" onChange={uploadFile} />
           <Spacer y={3} />
-
-          <p>Confidence: {confidence}</p>
+          <Text>Confidence Breakdown</Text>
+          <ConfidenceScores scores={confidence} />
         </Grid>
       </Grid.Container>
     </NextUIProvider>
