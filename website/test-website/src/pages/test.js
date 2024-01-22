@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
-const { app, database } = require("@/components/firebase");
+import { ref as refStorage, getDownloadURL } from "firebase/storage";
+
+const { app, database, storage } = require("@/components/firebase");
 
 import { NextUIProvider } from "@nextui-org/react";
 import {
@@ -15,10 +17,9 @@ import {
 
 function Orpheus({ userID }) {
   const [userInput, setUserInput] = useState("");
-  const [response, setResponse] = useState("");
   const [confidence, setConfidence] = useState([""]);
   const [features, setFeatures] = useState("");
-  const [songs, setSongs] = useState("");
+  const [songs, setSongs] = useState([]);
   const [spotifySong, setSpotifySong] = useState("");
   const [messages, setMessages] = useState([""]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,15 +42,74 @@ function Orpheus({ userID }) {
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          scores.map((message, index) => (
+          scores.map((score, index) => (
             <div key={index}>
-              {message[0]} : {message[1]}%
+              {score[0]} : {score[1]}%
             </div>
           ))
         )}
       </div>
     );
   };
+
+  const RecoSongs = ({ songs }) => {
+    const [recos, setRecos] = useState([]);
+
+    useEffect(() => {
+      const fetchData = async () => {
+        const newRecos = [];
+
+        await Promise.all(
+          songs.map(async (song) => {
+            const newEntry = {
+              name: song[0],
+              link: await getDownloadLink(song),
+              sim: song[1],
+            };
+            newRecos.push(newEntry);
+          })
+        );
+
+        setRecos(newRecos);
+      };
+
+      fetchData();
+    }, [songs]);
+
+    return recos.map((newEntry, index) => {
+      if (recos.length < 1) {
+        return <div>Null</div>;
+      } else {
+        return (
+          <div>
+            {
+              <div key={index}>
+                <Link href={newEntry.link} target="_blank">
+                  {newEntry.name}
+                </Link>{" "}
+                : {parseFloat(newEntry.sim).toFixed(2)}%
+              </div>
+            }
+          </div>
+        );
+      }
+    });
+  };
+
+  async function getDownloadLink(song) {
+    var folder = song[0].match(/([a-zA-Z]+)/);
+    // console.log(folder[0] + " folder, filename: " + song[0]);
+    try {
+      const url = await getDownloadURL(
+        refStorage(storage, folder[0] + "/" + song[0])
+      );
+      // console.log(url);
+      return url;
+    } catch (error) {
+      console.error("Error fetching download link:", error);
+      return "default";
+    }
+  }
 
   const addMessage = (newMessage) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -79,7 +139,7 @@ function Orpheus({ userID }) {
       });
     }
 
-    addMessage("User: " + userInput);
+    addMessage("You: " + userInput);
     setIsLoading(true);
 
     const response = await fetch(url, options);
@@ -99,6 +159,7 @@ function Orpheus({ userID }) {
       }
 
       if (result.songs != null) {
+        console.log(result.songs[0]);
         setSongs(result.songs);
       }
 
@@ -162,21 +223,19 @@ function Orpheus({ userID }) {
       <Grid.Container gap={2} justify="center">
         <Grid xs={4} direction="column">
           <Text>Features</Text>
-          <Text style={{ overflowWrap: "break-word" }}>
-            features: {features}
-          </Text>
+          <Text style={{ overflowWrap: "break-word" }}>{features}</Text>
           <Spacer y={3} />
           <Text>Songs</Text>
-          <Text style={{ overflowWrap: "break-word" }}>{songs} </Text>
-
+          {/* <Text style={{ overflowWrap: "break-word" }}>{songs} </Text> */}
+          <RecoSongs songs={songs} />
           <Spacer y={3} />
           <Text>Spotify</Text>
           <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
         </Grid>
-        <Grid xs={4} direction="column">
+        <Grid xs={5} direction="column">
           <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
-          <form onSubmit={handleSubmit}>
+          <form>
             <input
               type="text"
               value={userInput}
@@ -188,7 +247,7 @@ function Orpheus({ userID }) {
             </Button>
           </form>
         </Grid>
-        <Grid xs={4} direction="column">
+        <Grid xs={2} direction="column">
           <input type="file" onChange={uploadFile} />
           <Spacer y={3} />
           <Text>Confidence Breakdown</Text>

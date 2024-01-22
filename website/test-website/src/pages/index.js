@@ -1,4 +1,3 @@
-"use client";
 const { Orpheus } = require("@/pages/test.js");
 import { NextUIProvider } from "@nextui-org/react";
 import { getIronSession } from "iron-session";
@@ -18,6 +17,15 @@ export async function getServerSideProps({ req, res }) {
     cookieName: process.env.COOKIE_NAME,
     password: process.env.SESSION_PASSWORD,
   });
+
+  if (session.userID == undefined) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "login",
+      },
+    };
+  }
 
   return {
     props: {

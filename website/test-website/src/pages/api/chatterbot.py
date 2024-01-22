@@ -80,7 +80,19 @@ def find_sim(data):
 
     series = new_data_names[placeHoldername].sort_values(ascending=False)
     series = series.drop(placeHoldername)
-    return series.head(3)
+
+    series = series.head(3).to_dict()
+
+    from collections import Counter
+
+    k = Counter(series)
+    
+    # Finding 3 highest values
+    series = k.most_common(3) 
+    
+    for i in series:
+        print(i[0]," :",i[1]," ")
+    return series
 
 
 
