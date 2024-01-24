@@ -7,28 +7,28 @@ import { NextUIProvider } from "@nextui-org/react";
 import { Button, Link, Table, TableColumn, Spacer } from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
+function removeSong(userId, id) {
+  console.log(userId + " : " + id);
+  get(ref(database, "users/" + userId + "/" + id))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        remove(ref(database, "users/" + userId + "/" + id));
+
+        console.log("sss'" + id + "'");
+      } else {
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
 export default function Profile({ userID, email, songsData, headers }) {
-  async function removeSong(id) {
-    await get(ref(database, "users/" + userID + "/" + id))
-      .then((snapshot) => {
-        if (snapshot.exists()) {
-          remove(ref(database, "users/" + userID + "/" + id));
-
-          console.log("sss'" + id + "'");
-        } else {
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
-
   return (
     <NextUIProvider>
       <Nav />
 
-      {/* {email ? <p>This is you email: {email}</p> : <p>Loading...</p>}
-      {JSON.stringify(songsData)} */}
+      {userID ? <p>This is you id: {userID}</p> : <p>Loading...</p>}
 
       <table>
         <thead>
@@ -49,7 +49,9 @@ export default function Profile({ userID, email, songsData, headers }) {
                 </td>
               ))}
               <td>
-                <Button onPress={removeSong(Object.values(item)[0])}>
+                <Button
+                  onClick={() => removeSong(userID, Object.values(item)[0])}
+                >
                   Delete
                 </Button>
               </td>
@@ -77,21 +79,6 @@ export async function getServerSideProps({ req, res }) {
     };
   }
 
-  var songs;
-  const dbRef = ref(database);
-  await get(child(dbRef, `users/${session.userID}`))
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        songs = snapshot.toJSON();
-      } else {
-        console.log("No data available");
-        songs = "Start Uploading";
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-
   const excludedKeys = [
     "chroma_stft_var",
     "harmony_var",
@@ -102,12 +89,29 @@ export async function getServerSideProps({ req, res }) {
     "zero_crossing_rate_var",
     "rms_var",
   ];
-  var headers = Object.keys(JSON.parse(Object.values(songs)[0])[0]);
+  var songsData;
+  var headers;
 
-  excludedKeys.forEach((element) => {
-    headers = headers.filter((item) => item !== element);
-  });
-  var songsData = Object.entries(songs);
+  const dbRef = ref(database);
+  await get(child(dbRef, `users/${session.userID}`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        songsData = snapshot.toJSON();
+
+        headers = Object.keys(JSON.parse(Object.values(songsData)[0])[0]);
+
+        excludedKeys.forEach((element) => {
+          headers = headers.filter((item) => item !== element);
+        });
+        songsData = Object.entries(songsData);
+      } else {
+        console.log("No data available");
+        songsData = "Start Uploading";
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 
   // const dataObject = Object.entries(songs).map((item, index) => {
   //   var j = JSON.parse(Object.values(item)[1])[0];
@@ -116,10 +120,11 @@ export async function getServerSideProps({ req, res }) {
 
   // console.log(Object.values(JSON.parse(Object.values(songs)[1])[0]));
 
+  // console.log(session.userID);
   return {
     props: {
       email: session.email,
-      email: session.userID,
+      userID: session.userID,
       songsData: songsData,
       headers: headers,
     },

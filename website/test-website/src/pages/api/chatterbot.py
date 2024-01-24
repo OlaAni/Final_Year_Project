@@ -465,8 +465,8 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
 
             sim = find_sim(pred)
             songs=[]
-            for key, value in sim.items():
-                print(key," :",round(value,2),"% similiar")
+            # for key, value in sim.items():
+            #     print(key," :",round(value,2),"% similiar")
 
             # label = label_encoder.inverse_transform(pred['label'])[0]
             # spotifySong = "Recommendation from Spotify: ",search_spotify(label,pred['tempo'])

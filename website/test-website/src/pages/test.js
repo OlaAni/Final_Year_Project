@@ -175,6 +175,7 @@ function Orpheus({ userID }) {
   async function uploadFile(event) {
     const url = "http://localhost:5000/chat";
     const file = event.target.files[0];
+    console.log(userID);
 
     const formData = new FormData();
 
