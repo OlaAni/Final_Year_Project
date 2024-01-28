@@ -265,6 +265,8 @@ def search(query):
 
 import spacy
 from spacy.matcher import Matcher
+spacy.cli.download("en_core_web_sm")
+
 nlp = spacy.load("en_core_web_sm")
 matcher = Matcher(nlp.vocab)
 
