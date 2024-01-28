@@ -21,7 +21,7 @@ import joblib
 
 
 #model
-df = pd.read_csv(r'music_data\features_3_sec.csv')
+df = pd.read_csv(r'music_data/features_3_sec.csv')
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 from sklearn.preprocessing import LabelEncoder
 label_encoder = LabelEncoder()
@@ -57,7 +57,7 @@ def find_sim(data):
     placeHoldername = 'test'
     data['filename'] = placeHoldername
 
-    df_sim = pd.read_csv(r'music_data\features_30_sec.csv')
+    df_sim = pd.read_csv(r'music_data/features_30_sec.csv')
 
     df_sim = df_sim[['filename','chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 
