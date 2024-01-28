@@ -17,6 +17,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
 import xgboost
+import joblib
 
 
 #model
@@ -25,31 +26,30 @@ df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_cen
 from sklearn.preprocessing import LabelEncoder
 label_encoder = LabelEncoder()
 df['label'] =  label_encoder.fit_transform(df['label'])
-print(label_encoder.classes_)
-y = df[['label']]
-X = df[df.columns.difference(['label'])]
+# print(label_encoder.classes_)
+# y = df[['label']]
+# X = df[df.columns.difference(['label'])]
 
 ## split both X and y using a ratio of 70% training - 30% testing
 ##add min maxing
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-print(len(X_train), len(X_test), len(y_train), len(y_test))
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+# print(len(X_train), len(X_test), len(y_train), len(y_test))
 
-xgb = xgboost.XGBClassifier(n_estimators=1000,enable_catergorical=True,learning_rate=0.05)
-xgb.fit(X_train, y_train)
+# xgb = xgboost.XGBClassifier(n_estimators=1000,enable_catergorical=True,learning_rate=0.05)
+# xgb.fit(X_train, y_train)
 
-predictions = xgb.predict(X_test)
+# predictions = xgb.predict(X_test)
 
 target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
 
-print(classification_report(y_test, predictions, target_names=target_name))
-print("Accuracy: " ,metrics.accuracy_score(y_test, predictions))
-
-cols_when_model_builds = xgb.feature_names_in_
-
-# xgb.save_model('model.model')
-
-# xgb = xgbo.Booster(model_file=r'model.model')
+# print(classification_report(y_test, predictions, target_names=target_name))
+# print("Accuracy: " ,metrics.accuracy_score(y_test, predictions))
 # cols_when_model_builds = xgb.feature_names
+
+xgb = joblib.load('model.pkl')
+cols_when_model_builds = xgb.get_booster().feature_names
+
+
 
 
 #find sim music function
