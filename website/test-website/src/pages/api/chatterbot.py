@@ -173,55 +173,46 @@ def confidence_score(proba):
 def extract_features(file):
     y, sr = librosa.load(file)
 
-    chroma_sft_mean =  np.mean(librosa.feature.chroma_stft(y=y, sr=sr))
-    chroma_sft_var =  librosa.feature.chroma_stft(y=y, sr=sr).var()
 
-    rms_mean = librosa.feature.rms(y=y).mean()
-    rms_var = librosa.feature.rms(y=y).var()
-
-    spectral_centroid_mean = librosa.feature.spectral_centroid(y=y, sr=sr).mean()
-    spectral_centroid_var = librosa.feature.spectral_centroid(y=y, sr=sr).var()
-
-    spectral_bandwith_mean = librosa.feature.spectral_bandwidth(y=y, sr=sr).mean()
-    spectral_bandwith_var = librosa.feature.spectral_bandwidth(y=y, sr=sr).var()
-
-    rolloff_mean = librosa.feature.spectral_rolloff(y=y, sr=sr).mean()
-    rolloff_var = librosa.feature.spectral_rolloff(y=y, sr=sr).var()
-
-    zero_crossing_rate_mean = librosa.feature.zero_crossing_rate(y=y).mean()
-    zero_crossing_rate_var = librosa.feature.zero_crossing_rate(y=y).var()
-
-
-    harmony_mean = librosa.effects.harmonic(y).mean()
-    harmony_var = librosa.effects.harmonic(y).var()
-
+    chroma_sft = librosa.feature.chroma_stft(y=y, sr=sr)
+    rms = librosa.feature.rms(y=y)
+    spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+    zero_crossing_rate = librosa.feature.zero_crossing_rate(y=y)
+    harmony = librosa.effects.harmonic(y)
     tempo = librosa.feature.tempo(y=y, sr=sr)[0]
 
-    
+    # chroma_sft_mean =  np.mean(librosa.feature.chroma_stft(y=y, sr=sr))
+    # chroma_sft_var =  librosa.feature.chroma_stft(y=y, sr=sr).var()
+
+    # rms_mean = librosa.feature.rms(y=y).mean()
+    # rms_var = librosa.feature.rms(y=y).var()
+
+    # spectral_centroid_mean = librosa.feature.spectral_centroid(y=y, sr=sr).mean()
+    # spectral_centroid_var = librosa.feature.spectral_centroid(y=y, sr=sr).var()
+
+    # spectral_bandwith_mean = librosa.feature.spectral_bandwidth(y=y, sr=sr).mean()
+    # spectral_bandwith_var = librosa.feature.spectral_bandwidth(y=y, sr=sr).var()
+
+    # rolloff_mean = librosa.feature.spectral_rolloff(y=y, sr=sr).mean()
+    # rolloff_var = librosa.feature.spectral_rolloff(y=y, sr=sr).var()
+
+    # zero_crossing_rate_mean = librosa.feature.zero_crossing_rate(y=y).mean()
+    # zero_crossing_rate_var = librosa.feature.zero_crossing_rate(y=y).var()
+
+
+    # harmony_mean = librosa.effects.harmonic(y).mean()
+    # harmony_var = librosa.effects.harmonic(y).var()
+
+    # tempo = librosa.feature.tempo(y=y, sr=sr)[0]
+
     print("----------------------------------------------------------------------------")
 
-    print("chroma_sft_mean: ",chroma_sft_mean)
-    # print("chroma_sft_var: ",chroma_sft_var)
-    print("rms_mean: ",rms_mean)
-    # print("rms_var: ",rms_var)
-    print("spectral_centroid_mean: ",spectral_centroid_mean)
-    # print("spectral_centroid_var: ",spectral_centroid_var)
-    print("spectral_bandwith_mean: ",spectral_bandwith_mean)
-    # print("spectral_bandwith_var: ",spectral_bandwith_var)
-    print("rolloff_mean: ",rolloff_mean)
-    # print("rolloff_var: ",rolloff_var)
-    print("zero_crossing_rate_mean: ",zero_crossing_rate_mean)
-    # print("zero_crossing_rate_var: ",zero_crossing_rate_var)
-    print("harmony_mean: ",harmony_mean)
-    # print("harmony_var: ",harmony_var)
-    print("tempo: ",tempo)
-
-    print("----------------------------------------------------------------------------")
-
-    features = pd.DataFrame({'chroma_stft_mean':[chroma_sft_mean],'chroma_stft_var':[chroma_sft_var],'rms_mean':[rms_mean],'rms_var':[rms_var],'spectral_centroid_mean':[spectral_centroid_mean],
-                             'spectral_centroid_var':[spectral_centroid_var],'spectral_bandwidth_mean':[spectral_bandwith_mean],'spectral_bandwidth_var':[spectral_bandwith_var],
-                             'rolloff_mean':[rolloff_mean],'rolloff_var':[rolloff_var],'zero_crossing_rate_mean':[zero_crossing_rate_mean],'zero_crossing_rate_var':[zero_crossing_rate_var],
-                             'harmony_mean':[harmony_mean],'harmony_var':[harmony_var],'tempo':[tempo],})
+    features = pd.DataFrame({'chroma_stft_mean':[chroma_sft.mean()],'chroma_stft_var':[chroma_sft.var()],'rms_mean':[rms.mean()],'rms_var':[rms.var()],'spectral_centroid_mean':[spectral_centroid.mean()],
+                             'spectral_centroid_var':[spectral_centroid.var()],'spectral_bandwidth_mean':[spectral_bandwidth.mean()],'spectral_bandwidth_var':[spectral_bandwidth.var()],
+                             'rolloff_mean':[rolloff.mean()],'rolloff_var':[rolloff.var()],'zero_crossing_rate_mean':[zero_crossing_rate.mean()],'zero_crossing_rate_var':[zero_crossing_rate.var()],
+                             'harmony_mean':[harmony.mean()],'harmony_var':[harmony.var()],'tempo':[tempo],})
     
 
     features = features.reindex(columns=cols_when_model_builds)
@@ -495,24 +486,24 @@ def extract(name):
     return features1,strLabel, high
 
 
-def chat():
-    print(f"Orpheus: Hello My Name is DJ ORPHEUS, need some songs im here to help")
-    amoSim = 0
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == "extract":
-            name = "music/downloaded/musicaudio.mp3"
-            features1 = extract(name)
-        elif user_input.lower() == "exit":
-            break
-        else:
-            try:
-                features1
-            except NameError:
-                response = chatbot_response(user_input, amoSim)
-            else:
-                response = chatbot_response(user_input,amoSim, features1)
-            print(f"Orpheus: {response}")
+# def chat():
+#     print(f"Orpheus: Hello My Name is DJ ORPHEUS, need some songs im here to help")
+#     amoSim = 0
+#     while True:
+#         user_input = input("You: ")
+#         if user_input.lower() == "extract":
+#             name = "music/downloaded/musicaudio.mp3"
+#             features1 = extract(name)
+#         elif user_input.lower() == "exit":
+#             break
+#         else:
+#             try:
+#                 features1
+#             except NameError:
+#                 response = chatbot_response(user_input, amoSim)
+#             else:
+#                 response = chatbot_response(user_input,amoSim, features1)
+#             print(f"Orpheus: {response}")
 
 
 
