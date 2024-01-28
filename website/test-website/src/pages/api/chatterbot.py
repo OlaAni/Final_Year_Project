@@ -265,7 +265,7 @@ def search(query):
 
 import spacy
 from spacy.matcher import Matcher
-spacy.cli.download("en_core_web_sm")
+# spacy.cli.download("en_core_web_sm")
 
 nlp = spacy.load("en_core_web_sm")
 matcher = Matcher(nlp.vocab)
@@ -519,8 +519,9 @@ def chat():
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
 
-app = Flask(__name__)
+app = Flask("chatterbot")
 CORS(app) 
+
 
 @app.route('/upload', methods=['POST'])
 def upload():
