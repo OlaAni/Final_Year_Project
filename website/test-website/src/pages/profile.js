@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useState } from "react";
 const { app, database } = require("@/components/firebase");
 import { getDatabase, ref, child, get, remove } from "firebase/database";
 import { getIronSession } from "iron-session";
@@ -7,58 +7,63 @@ import { NextUIProvider } from "@nextui-org/react";
 import { Button, Link, Table, TableColumn, Spacer } from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
-function removeSong(userId, id) {
-  console.log(userId + " : " + id);
-  get(ref(database, "users/" + userId + "/" + id))
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        remove(ref(database, "users/" + userId + "/" + id));
 
-        console.log("sss'" + id + "'");
-      } else {
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+export default function Profile({ userID, songsData, headers }) {
+  const [tableData, setTableData] = useState(songsData);
+  const removeSong = (userId, id) => {
+    console.log(userId + " : " + id);
+    get(ref(database, "users/" + userId + "/" + id))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          remove(ref(database, "users/" + userId + "/" + id));
+          setTableData(
+            tableData.filter((item) => Object.values(item)[0] !== id)
+          );
 
-export default function Profile({ userID, email, songsData, headers }) {
+          console.log("sss'" + id + "'");
+        } else {
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   return (
     <NextUIProvider>
       <Nav />
-
-      {userID ? <p>This is you id: {userID}</p> : <p>Loading...</p>}
-
-      <table>
-        <thead>
-          <tr>
-            {headers.map((header) => (
-              <th key={header} style={{ fontSize: "10px" }}>
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {songsData.map((item, index) => (
-            <tr key={index}>
+      {/* {userID ? <p>This is you id: {userID}</p> : <p>Loading...</p>} */}
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <table>
+          <thead>
+            <tr>
               {headers.map((header) => (
-                <td key={header}>
-                  {JSON.parse(Object.values(item)[1])[0][header]}
-                </td>
+                <th key={header} style={{ fontSize: "10px" }}>
+                  {header}
+                </th>
               ))}
-              <td>
-                <Button
-                  onClick={() => removeSong(userID, Object.values(item)[0])}
-                >
-                  Delete
-                </Button>
-              </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tableData.map((item, index) => (
+              <tr key={index}>
+                {headers.map((header) => (
+                  <td key={header}>
+                    {JSON.parse(Object.values(item)[1])[0][header]}
+                  </td>
+                ))}
+                <td>
+                  <Button
+                    onClick={() => removeSong(userID, Object.values(item)[0])}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </NextUIProvider>
   );
 }
@@ -68,7 +73,6 @@ export async function getServerSideProps({ req, res }) {
     cookieName: process.env.COOKIE_NAME,
     password: process.env.SESSION_PASSWORD,
   });
-  console.log("-------------------------");
 
   if (session.userID == undefined) {
     return {
@@ -113,17 +117,8 @@ export async function getServerSideProps({ req, res }) {
       console.error(error);
     });
 
-  // const dataObject = Object.entries(songs).map((item, index) => {
-  //   var j = JSON.parse(Object.values(item)[1])[0];
-  //   console.log(JSON.parse(Object.values(item)[1])[0]["chroma_stft_mean"]);
-  // });
-
-  // console.log(Object.values(JSON.parse(Object.values(songs)[1])[0]));
-
-  // console.log(session.userID);
   return {
     props: {
-      email: session.email,
       userID: session.userID,
       songsData: songsData,
       headers: headers,

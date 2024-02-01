@@ -1,5 +1,4 @@
 import { getIronSession } from "iron-session";
-const { Nav } = require("@/components/Nav");
 import React, { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
@@ -28,11 +27,17 @@ function Orpheus({ userID }) {
 
   const ChatWindow = ({ messages }) => {
     return (
-      <div>
+      <div style={chatWindowStyle}>
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          messages.map((message, index) => <div key={index}>{message}</div>)
+          <div style={messageContainerStyle}>
+            {messages.map((message, index) => (
+              <div key={index} style={messageStyle}>
+                {message}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     );
@@ -121,8 +126,8 @@ function Orpheus({ userID }) {
 
   async function handleSubmit(event) {
     // event.preventDefault();
-    // const url = "http://localhost:5000/chat";
-    const url = "https://orpheusapi.onrender.com/chat";
+    const url = "http://localhost:5000/chat";
+    // const url = "https://orpheusapi.onrender.com/chat";
 
     var options = {
       method: "POST",
@@ -174,8 +179,8 @@ function Orpheus({ userID }) {
   }
 
   async function uploadFile(event) {
-    // const url = "http://localhost:5000/chat";
-    const url = "https://orpheusapi.onrender.com/chat";
+    const url = "http://localhost:5000/chat";
+    // const url = "https://orpheusapi.onrender.com/chat";
 
     const file = event.target.files[0];
     console.log(userID);
@@ -225,44 +230,96 @@ function Orpheus({ userID }) {
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
-        <Grid xs={4} direction="column">
-          <Text>Features</Text>
-          <Text style={{ overflowWrap: "break-word" }}>{features}</Text>
+        <Grid xs={4} direction="column" style={columnStyle}>
+          <Text style={sectionTitleStyle}>Features</Text>
+          <Text style={breakWordStyle}>{features}</Text>
           <Spacer y={3} />
-          <Text>Songs</Text>
-          {/* <Text style={{ overflowWrap: "break-word" }}>{songs} </Text> */}
+          <Text style={sectionTitleStyle}>Songs</Text>
           <RecoSongs songs={songs} />
           <Spacer y={3} />
-          <Text>Spotify</Text>
-          <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
+          <Text style={sectionTitleStyle}>Spotify</Text>
+          <Text style={breakWordStyle}>{spotifySong}</Text>
         </Grid>
-        <Grid xs={5} direction="column">
+        <Grid xs={5} direction="column" style={columnStyle}>
           <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
-          <form>
+          <form style={formStyle}>
             <input
               type="text"
               value={userInput}
               id="user_input"
               onChange={handleUserInput}
+              style={inputStyle}
             />
             <Button color="primary" onPress={handleSubmit}>
               Chat
             </Button>
           </form>
         </Grid>
-        <Grid xs={2} direction="column">
-          <input type="file" onChange={uploadFile} />
+        <Grid xs={2} direction="column" style={columnStyle}>
+          <input type="file" onChange={uploadFile} style={fileInputStyle} />
           <Spacer y={3} />
-          <Text>Confidence Breakdown</Text>
+          <Text style={sectionTitleStyle}>Confidence Breakdown</Text>
           <ConfidenceScores scores={confidence} />
         </Grid>
       </Grid.Container>
-
-      {/* <Orpheus userID={userID} /> */}
     </NextUIProvider>
   );
 }
+
+const columnStyle = {
+  padding: "20px",
+  border: "1px solid #ddd",
+  borderRadius: "8px",
+  background: "#fff",
+};
+
+const sectionTitleStyle = {
+  fontSize: "18px",
+  fontWeight: "bold",
+  marginBottom: "10px",
+};
+
+const breakWordStyle = {
+  overflowWrap: "break-word",
+};
+
+const formStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  background: "black",
+};
+
+const inputStyle = {
+  marginBottom: "10px",
+  padding: "8px",
+  border: "1px solid #ddd",
+  borderRadius: "4px",
+};
+
+const fileInputStyle = {
+  marginBottom: "10px",
+};
+const chatWindowStyle = {
+  border: "1px solid #ddd",
+  borderRadius: "8px",
+  minHeight: "300px",
+  maxHeight: "500px",
+  overflowY: "auto",
+  padding: "10px",
+};
+
+const messageContainerStyle = {
+  overflowY: "auto",
+};
+
+const messageStyle = {
+  marginBottom: "8px",
+  padding: "8px",
+  border: "1px solid #ddd",
+  borderRadius: "4px",
+};
 module.exports = {
   Orpheus,
 };

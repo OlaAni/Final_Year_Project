@@ -1,10 +1,6 @@
 import { getIronSession } from "iron-session";
 const { Nav } = require("@/components/Nav");
 import React, { useState, useEffect } from "react";
-import { ref, push, set } from "firebase/database";
-import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
-
-const { app, database, storage } = require("@/components/firebase");
 const { Orpheus } = require("@/components/Orpheus");
 import { NextUIProvider } from "@nextui-org/react";
 import {

@@ -486,27 +486,6 @@ def extract(name):
     return features1,strLabel, high
 
 
-# def chat():
-#     print(f"Orpheus: Hello My Name is DJ ORPHEUS, need some songs im here to help")
-#     amoSim = 0
-#     while True:
-#         user_input = input("You: ")
-#         if user_input.lower() == "extract":
-#             name = "music/downloaded/musicaudio.mp3"
-#             features1 = extract(name)
-#         elif user_input.lower() == "exit":
-#             break
-#         else:
-#             try:
-#                 features1
-#             except NameError:
-#                 response = chatbot_response(user_input, amoSim)
-#             else:
-#                 response = chatbot_response(user_input,amoSim, features1)
-#             print(f"Orpheus: {response}")
-
-
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
 
