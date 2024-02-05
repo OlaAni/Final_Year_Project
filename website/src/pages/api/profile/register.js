@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   createUserWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      const user = userCredential.user;
+      // const user = userCredential.user;
       res.status(200).json({
         status: "OK",
       });
@@ -16,8 +16,15 @@ export default async function handler(req, res) {
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
+
+      if (errorCode == "auth/weak-password") {
+        res.status(400).json({
+          status: "Weak Password: Min 6 Characters",
+        });
+        return;
+      }
       res.status(400).json({
-        status: "Bad",
+        status: "Email already in use",
       });
       return;
     });

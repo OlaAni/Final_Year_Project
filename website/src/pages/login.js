@@ -47,7 +47,7 @@ export default function Login() {
       <Spacer y={1} />
       <Spacer y={2.5} />
       <Row gap={1}>
-        <Card css={{ $$cardColor: "lightGreen", mw: "600px", margin: "auto" }}>
+        <Card css={{ $$cardColor: "#daa520", mw: "600px", margin: "auto" }}>
           <Card.Body>
             <Text h6 align="center" size={36} css={{ m: 0 }}>
               Login
@@ -63,7 +63,6 @@ export default function Login() {
                   clearable
                   labelPlaceholder="Email"
                   minLength={3}
-                  maxLength={15}
                 />
               </Row>
 
@@ -88,10 +87,9 @@ export default function Login() {
                   <Col>
                     <Button
                       css={{
-                        color: "$buttonSecondary",
-                        backgroundColor: "$buttonPrimary",
+                        color: "#daa520",
+                        backgroundColor: "black",
                       }}
-                      size="lg"
                       type="submit"
                     >
                       Sign In

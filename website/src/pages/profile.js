@@ -38,10 +38,18 @@ export default function Profile({ userID, songsData, headers }) {
           <thead>
             <tr>
               {headers.map((header) => (
-                <th key={header} style={{ fontSize: "10px" }}>
+                <th
+                  key={header}
+                  style={{
+                    fontSize: "10px",
+                    backgroundColor: "white",
+                    border: "2px solid #ddd",
+                  }}
+                >
                   {header}
                 </th>
               ))}
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -52,7 +60,11 @@ export default function Profile({ userID, songsData, headers }) {
                     {JSON.parse(Object.values(item)[1])[0][header]}
                   </td>
                 ))}
-                <td>
+                <td
+                  style={{
+                    border: "5px solid #ddd",
+                  }}
+                >
                   <Button
                     onClick={() => removeSong(userID, Object.values(item)[0])}
                   >

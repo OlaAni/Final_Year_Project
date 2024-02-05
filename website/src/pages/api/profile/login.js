@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       const errorCode = error.code;
       const errorMessage = error.message;
       res.status(400).json({
-        status: errorMessage,
+        status: "Incorrect Username or Password",
       });
     });
 }

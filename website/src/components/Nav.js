@@ -23,12 +23,11 @@ function Nav() {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 20px",
-    background: "#333",
-    color: "#fff",
+    background: "#daa520",
   };
 
   const linkStyle = {
-    color: "#fff",
+    color: "#black",
     textDecoration: "none",
     margin: "0 15px",
     fontSize: "18px",

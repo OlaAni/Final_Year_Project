@@ -49,7 +49,7 @@ export default function Register() {
       <Spacer y={1} />
       <Spacer y={2.5} />
       <Row gap={1}>
-        <Card css={{ $$cardColor: "lightGreen", mw: "600px", margin: "auto" }}>
+        <Card css={{ $$cardColor: "#daa520", mw: "600px", margin: "auto" }}>
           <Card.Body>
             <Text h6 align="center" size={36} css={{ m: 0 }}>
               Register
@@ -87,7 +87,13 @@ export default function Register() {
               <Grid.Container justify="center">
                 <Grid>
                   <Col>
-                    <Button color="secondary" size="lg" type="submit">
+                    <Button
+                      css={{
+                        color: "#daa520",
+                        backgroundColor: "black",
+                      }}
+                      type="submit"
+                    >
                       Register
                     </Button>
                     <Spacer />
