@@ -50,6 +50,15 @@ function Nav() {
   return (
     <>
       <div style={navbarStyle}>
+        <Link href="/" style={{ marginRight: "15px" }}>
+          <Image
+            width={188}
+            height={75}
+            src="/Lyre.png"
+            alt="Logo"
+            style={{ objectFit: "contain" }}
+          />
+        </Link>
         <Link style={linkStyle} href="/">
           Orpheus
         </Link>

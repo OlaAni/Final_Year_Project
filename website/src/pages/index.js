@@ -1,21 +1,17 @@
 import { getIronSession } from "iron-session";
-const { Nav } = require("@/components/Nav");
-import React, { useState, useEffect } from "react";
-const { Orpheus } = require("@/components/Orpheus");
+import React from "react";
 import { NextUIProvider } from "@nextui-org/react";
-import {
-  Button,
-  Link,
-  Table,
-  TableColumn,
-  Grid,
-  Spacer,
-  Text,
-} from "@nextui-org/react";
+const { Orpheus } = require("@/components/Orpheus");
+const { Nav } = require("@/components/Nav");
+import Head from "next/head";
 
 export default function Home({ userID }) {
   return (
     <NextUIProvider>
+      <Head>
+        <title>Orpheus</title>
+      </Head>
+
       <Nav />
 
       <Orpheus userID={userID} />

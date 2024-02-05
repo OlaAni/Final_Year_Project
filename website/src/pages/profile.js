@@ -7,6 +7,7 @@ import { NextUIProvider } from "@nextui-org/react";
 import { Button, Link, Table, TableColumn, Spacer } from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
+import Head from "next/head";
 
 export default function Profile({ userID, songsData, headers }) {
   const [tableData, setTableData] = useState(songsData);
@@ -31,6 +32,9 @@ export default function Profile({ userID, songsData, headers }) {
 
   return (
     <NextUIProvider>
+      <Head>
+        <title>Profile</title>
+      </Head>
       <Nav />
       {/* {userID ? <p>This is you id: {userID}</p> : <p>Loading...</p>} */}
       <div style={{ display: "flex", justifyContent: "center" }}>
