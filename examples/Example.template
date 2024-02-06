@@ -1,5 +1,0 @@
-{% block %}
-    {% client %}((I('| a)m|my name is) )?(.*){% endclient %}
-    {% prev %}(.*)Can you please tell me your name{% endprev %}
-    {% response %}Thank you {name:%4}{% endresponse %}
-{% endblock %}

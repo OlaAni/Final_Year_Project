@@ -1,6 +1,0 @@
-﻿genre,artist_name,track_name,track_id,popularity,acousticness,danceability,duration_ms,energy,instrumentalness,key,liveness,loudness,mode,speechiness,tempo,time_signature,valence
-Movie,Henri Salvador,C'est beau de faire un Show,0BRjO6ga9RKCKjfDqeFgWV,0,0.611,0.389,99373,0.91,0,C#,0.346,-1.828,Major,0.0525,166.969,04-Apr,0.814
-Movie,Martin & les fées,Perdu d'avance (par Gad Elmaleh),0BjC1NfoEOOusryehmNudP,1,0.246,0.59,137373,0.737,0,F#,0.151,-5.559,Minor,0.0868,174.003,04-Apr,0.816
-Movie,Joseph Williams,Don't Let Me Be Lonely Tonight,0CoSDzoNIKCRs124s9uTVy,3,0.952,0.663,170267,0.131,0,C,0.103,-13.879,Minor,0.0362,99.488,05-Apr,0.368
-Movie,Jean Piat,Comme minuit sonnait,16UTNMhXjeJa8IG9uBijxZ,0,0.882,0.711,299040,0.218,0,A#,0.145,-22.212,Minor,0.681,125.521,05-Apr,0.591
-Movie,Henri Salvador,Le Fêtard,16hVzfu0IJZmP3Bj4x1BB1,0,0.159,0.636,152840,0.594,0,G#,0.184,-7.943,Major,0.084,111.361,04-Apr,0.669
