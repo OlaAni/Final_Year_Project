@@ -16,7 +16,8 @@ import {
   Text,
 } from "@nextui-org/react";
 
-function Orpheus({ userID }) {
+
+function Orpheus({ userID, endpoint }) {
   const [userInput, setUserInput] = useState("");
   const [confidence, setConfidence] = useState([""]);
   const [features, setFeatures] = useState("");
@@ -126,8 +127,9 @@ function Orpheus({ userID }) {
 
   async function handleSubmit(event) {
     // event.preventDefault();
-    const url = "http://localhost:5000/chat";
-    // const url = "https://orpheusapi.onrender.com/chat";
+    const url = endpoint+"/chat";
+
+    console.log(endpoint)
 
     var options = {
       method: "POST",
@@ -179,8 +181,8 @@ function Orpheus({ userID }) {
   }
 
   async function uploadFile(event) {
-    const url = "http://localhost:5000/chat";
-    // const url = "https://orpheusapi.onrender.com/chat";
+    const url = endpoint+"/chat";
+    console.log(url)
 
     const file = event.target.files[0];
     console.log(userID);

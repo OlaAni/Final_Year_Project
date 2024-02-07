@@ -26,25 +26,8 @@ df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_cen
 from sklearn.preprocessing import LabelEncoder
 label_encoder = LabelEncoder()
 df['label'] =  label_encoder.fit_transform(df['label'])
-# print(label_encoder.classes_)
-# y = df[['label']]
-# X = df[df.columns.difference(['label'])]
-
-## split both X and y using a ratio of 70% training - 30% testing
-##add min maxing
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
-# print(len(X_train), len(X_test), len(y_train), len(y_test))
-
-# xgb = xgboost.XGBClassifier(n_estimators=1000,enable_catergorical=True,learning_rate=0.05)
-# xgb.fit(X_train, y_train)
-
-# predictions = xgb.predict(X_test)
 
 target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
-
-# print(classification_report(y_test, predictions, target_names=target_name))
-# print("Accuracy: " ,metrics.accuracy_score(y_test, predictions))
-# cols_when_model_builds = xgb.feature_names
 
 xgb = joblib.load('model.pkl')
 cols_when_model_builds = xgb.get_booster().feature_names
@@ -90,8 +73,8 @@ def find_sim(data):
     # Finding 3 highest values
     series = k.most_common(3) 
     
-    for i in series:
-        print(i[0]," :",i[1]," ")
+    #for i in series:
+        #print(i[0]," :",i[1]," ")
     return series
 
 
@@ -183,32 +166,6 @@ def extract_features(file):
     harmony = librosa.effects.harmonic(y)
     tempo = librosa.feature.tempo(y=y, sr=sr)[0]
 
-    # chroma_sft_mean =  np.mean(librosa.feature.chroma_stft(y=y, sr=sr))
-    # chroma_sft_var =  librosa.feature.chroma_stft(y=y, sr=sr).var()
-
-    # rms_mean = librosa.feature.rms(y=y).mean()
-    # rms_var = librosa.feature.rms(y=y).var()
-
-    # spectral_centroid_mean = librosa.feature.spectral_centroid(y=y, sr=sr).mean()
-    # spectral_centroid_var = librosa.feature.spectral_centroid(y=y, sr=sr).var()
-
-    # spectral_bandwith_mean = librosa.feature.spectral_bandwidth(y=y, sr=sr).mean()
-    # spectral_bandwith_var = librosa.feature.spectral_bandwidth(y=y, sr=sr).var()
-
-    # rolloff_mean = librosa.feature.spectral_rolloff(y=y, sr=sr).mean()
-    # rolloff_var = librosa.feature.spectral_rolloff(y=y, sr=sr).var()
-
-    # zero_crossing_rate_mean = librosa.feature.zero_crossing_rate(y=y).mean()
-    # zero_crossing_rate_var = librosa.feature.zero_crossing_rate(y=y).var()
-
-
-    # harmony_mean = librosa.effects.harmonic(y).mean()
-    # harmony_var = librosa.effects.harmonic(y).var()
-
-    # tempo = librosa.feature.tempo(y=y, sr=sr)[0]
-
-    print("----------------------------------------------------------------------------")
-
     features = pd.DataFrame({'chroma_stft_mean':[chroma_sft.mean()],'chroma_stft_var':[chroma_sft.var()],'rms_mean':[rms.mean()],'rms_var':[rms.var()],'spectral_centroid_mean':[spectral_centroid.mean()],
                              'spectral_centroid_var':[spectral_centroid.var()],'spectral_bandwidth_mean':[spectral_bandwidth.mean()],'spectral_bandwidth_var':[spectral_bandwidth.var()],
                              'rolloff_mean':[rolloff.mean()],'rolloff_var':[rolloff.var()],'zero_crossing_rate_mean':[zero_crossing_rate.mean()],'zero_crossing_rate_var':[zero_crossing_rate.var()],
@@ -216,8 +173,6 @@ def extract_features(file):
     
 
     features = features.reindex(columns=cols_when_model_builds)
-    print(features)
-
 
     return features
 
@@ -237,7 +192,7 @@ def search(query):
         # video_title = search_result['snippet']['title']
         video_url = f'https://www.youtube.com/watch?v={video_id}'
 
-        print(f'Video Ulr: {video_url}')
+        #print(f'Video Ulr: {video_url}')
         url = video_url
 
     video = YouTube(url)
@@ -434,8 +389,8 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
                     amoSim = amoSim+1
                     sim = find_sim(features1)
                     songs=[]
-                    for key, value in sim.items():
-                        print(key," :",round(value,2),"% similiar")
+                    #for key, value in sim.items():
+                        #print(key," :",round(value,2),"% similiar")
 
                     label = label_encoder.inverse_transform(features1['label'])[0]
                     spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
@@ -447,7 +402,6 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
             return general(extracted_word),None,None,None,None
         
         elif category=="predicitions":
-            print("predicitions")
             from firebase import firebase
             firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
             result = firebase.get('/users', userID)
@@ -471,9 +425,7 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
 
 
 def extract(name):
-    print("Loading....")  
     features1 = extract_features(name)
-    print("Extracted")
 
     genre1 = xgb.predict(features1)
     genreProb = xgb.predict_proba(features1)
@@ -495,11 +447,9 @@ CORS(app)
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    print("upload: ", request.form.get('user_input'))
     data = request.files['music_file']
 
     data.save('downloadedTest.mp3')
-    print(data) 
     return jsonify({"status":"OK"})
 
 
@@ -529,7 +479,7 @@ def chatbot():
             features1=None
 
         userID = data.get('userID')
-        print("User: ",userID)
+        #print("User: ",userID)
         response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1, userID=userID)
 
         if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
