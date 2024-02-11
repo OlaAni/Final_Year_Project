@@ -116,7 +116,6 @@ def find_pred(result):
         finalDf = pd.concat([finalDf, df], ignore_index=True)
 
 
-    # finalDf =  finalDf.drop(['label'], axis=1)
 
     features = pd.DataFrame(columns=finalDf.columns)
 
@@ -124,13 +123,9 @@ def find_pred(result):
         X_train, X_test, y_train, y_test = train_test_split(finalDf, finalDf[column], test_size=0.2)
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
-        features.loc[0, column] = prediction[0]  # Assuming you want to update the first row (index 0)
+        features.loc[0, column] = prediction[0]
         # print(column,":",prediction[0])
         
-    
-
-
-
     return features
 
 
@@ -274,9 +269,8 @@ for category, patterns in responses.items():
 
 
 def general(user_input):
-    ##fill with general conversation about 
     ##history of prevois questions
-    newString = "Hello"
+    newString = ""
     if user_input.find("name")!=-1:
         newString = "My name is DJ ORPHEUS, no need tell me yours"
     elif user_input.find("bored")!=-1:
@@ -411,13 +405,7 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
                 return "Upload some more songs", None,None, None,None
 
             sim = find_sim(pred)
-            songs=[]
-            # for key, value in sim.items():
-            #     print(key," :",round(value,2),"% similiar")
-
-            # label = label_encoder.inverse_transform(pred['label'])[0]
-            # spotifySong = "Recommendation from Spotify: ",search_spotify(label,pred['tempo'])
-                    
+            songs=[]   
             return "I have some songs that i think you might like", sim,pred, None,None
             
     else:

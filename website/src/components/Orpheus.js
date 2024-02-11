@@ -16,7 +16,6 @@ import {
   Text,
 } from "@nextui-org/react";
 
-
 function Orpheus({ userID, endpoint }) {
   const [userInput, setUserInput] = useState("");
   const [confidence, setConfidence] = useState([""]);
@@ -126,10 +125,9 @@ function Orpheus({ userID, endpoint }) {
   };
 
   async function handleSubmit(event) {
-    // event.preventDefault();
-    const url = endpoint+"/chat";
+    const url = endpoint + "/chat";
 
-    console.log(endpoint)
+    console.log(endpoint);
 
     var options = {
       method: "POST",
@@ -181,8 +179,8 @@ function Orpheus({ userID, endpoint }) {
   }
 
   async function uploadFile(event) {
-    const url = endpoint+"/chat";
-    console.log(url)
+    const url = endpoint + "/chat";
+    console.log(url);
 
     const file = event.target.files[0];
     console.log(userID);
@@ -228,21 +226,39 @@ function Orpheus({ userID, endpoint }) {
     }
     setIsLoading(false);
   }
+  const jsonData = '[{"Example":"Characteristics"}]';
+  if (!Object.keys(features).length) {
+    var features1 = JSON.parse(jsonData)[0];
+  } else {
+    var features1 = JSON.parse(features)[0];
+    features1["label"] = confidence[0][0];
+  }
+  const keys = Object.keys(features1);
+  const values = Object.values(features1);
 
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
-        <Grid xs={4} direction="column" style={columnStyle}>
+        <Grid xs={3} direction="column" style={columnStyle}>
           <Text style={sectionTitleStyle}>Features</Text>
-          <Text style={breakWordStyle}>{features}</Text>
-          <Spacer y={3} />
-          <Text style={sectionTitleStyle}>Songs</Text>
-          <RecoSongs songs={songs} />
-          <Spacer y={3} />
-          <Text style={sectionTitleStyle}>Spotify</Text>
-          <Text style={breakWordStyle}>{spotifySong}</Text>
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {keys.map((key, index) => (
+                <tr key={index}>
+                  <td>{key}</td>
+                  <td>{JSON.stringify(values[index])}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Grid>
-        <Grid xs={5} direction="column" style={columnStyle}>
+        <Grid xs={6} direction="column" style={columnStyle}>
           <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
           <form style={formStyle}>
@@ -263,12 +279,28 @@ function Orpheus({ userID, endpoint }) {
           <Spacer y={3} />
           <Text style={sectionTitleStyle}>Confidence Breakdown</Text>
           <ConfidenceScores scores={confidence} />
+          <Spacer y={3} />
+
+          <Text style={sectionTitleStyle}>Songs</Text>
+          <RecoSongs songs={songs} />
+          <Spacer y={3} />
+          <Text style={sectionTitleStyle}>Spotify</Text>
+          <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
         </Grid>
       </Grid.Container>
     </NextUIProvider>
   );
 }
-
+const jsonStyle = {
+  fontFamily: "monospace", // Ensures proper spacing for monospace fonts
+  whiteSpace: "pre-wrap", // Preserves white space and line breaks
+  padding: "20px",
+  background: "#f0f0f0",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  overflow: "auto",
+  overflowWrap: "break-word",
+};
 const columnStyle = {
   padding: "20px",
   border: "1px solid #ddd",
@@ -280,10 +312,6 @@ const sectionTitleStyle = {
   fontSize: "18px",
   fontWeight: "bold",
   marginBottom: "10px",
-};
-
-const breakWordStyle = {
-  overflowWrap: "break-word",
 };
 
 const formStyle = {
