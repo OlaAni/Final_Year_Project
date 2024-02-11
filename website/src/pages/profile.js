@@ -71,6 +71,7 @@ export default function Profile({ userID, songsData, headers }) {
                 >
                   <Button
                     onClick={() => removeSong(userID, Object.values(item)[0])}
+                    style={{ background: "black" }}
                   >
                     Delete
                   </Button>

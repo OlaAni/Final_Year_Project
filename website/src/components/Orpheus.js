@@ -5,16 +5,9 @@ import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
 
 const { app, database, storage } = require("@/components/firebase");
 
-import { NextUIProvider } from "@nextui-org/react";
-import {
-  Button,
-  Link,
-  Table,
-  TableColumn,
-  Grid,
-  Spacer,
-  Text,
-} from "@nextui-org/react";
+import { NextUIProvider, yellow } from "@nextui-org/react";
+import { Button, Link, Grid, Spacer, Text, Switch } from "@nextui-org/react";
+import { color } from "framer-motion";
 
 function Orpheus({ userID, endpoint }) {
   const [userInput, setUserInput] = useState("");
@@ -24,6 +17,7 @@ function Orpheus({ userID, endpoint }) {
   const [spotifySong, setSpotifySong] = useState("");
   const [messages, setMessages] = useState([""]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecked, setisChecked] = useState(false);
 
   const ChatWindow = ({ messages }) => {
     return (
@@ -151,9 +145,7 @@ function Orpheus({ userID, endpoint }) {
     const response = await fetch(url, options);
     const result = await response.json();
 
-    // alert(result.status);
     if (result.status == "OK") {
-      // setResponse(result.Orpheus);
       addMessage("Orpheus: " + result.Orpheus);
 
       if (result.confidence != null) {
@@ -200,7 +192,6 @@ function Orpheus({ userID, endpoint }) {
     const result = await response.json();
 
     if (result.status == "OK") {
-      // setResponse(result.Orpheus);
       addMessage("Orpheus: " + result.Orpheus);
 
       if (result.confidence != null) {
@@ -226,6 +217,10 @@ function Orpheus({ userID, endpoint }) {
     }
     setIsLoading(false);
   }
+
+  // const jsonData =
+  //   '[{"chroma_stft_mean":0.2914259732,"chroma_stft_var":0.0939848498,"harmony_mean":-0.0000117495,"harmony_var":0.0169314761,"rms_mean":0.1417519599,"rms_var":0.0087820757,"rolloff_mean":2795.910729499,"rolloff_var":1621507.8096568789,"spectral_bandwidth_mean":1389.0684455566,"spectral_bandwidth_var":185156.3212288567,"spectral_centroid_mean":1459.4696908115,"spectral_centroid_var":438024.9988025444,"tempo":123.046875,"zero_crossing_rate_mean":0.0730522374,"zero_crossing_rate_var":0.0019091707,"label":0}]';
+
   const jsonData = '[{"Example":"Characteristics"}]';
   if (!Object.keys(features).length) {
     var features1 = JSON.parse(jsonData)[0];
@@ -233,13 +228,62 @@ function Orpheus({ userID, endpoint }) {
     var features1 = JSON.parse(features)[0];
     features1["label"] = confidence[0][0];
   }
-  const keys = Object.keys(features1);
-  const values = Object.values(features1);
 
+  const excludedKeys = [
+    "chroma_stft_var",
+    "harmony_var",
+    "rolloff_var",
+    "spectral_bandwidth_var",
+    "spectral_centroid_var",
+    "zero_crossing_rate_var",
+    "rms_var",
+  ];
+
+  var originalKeys = Object.keys(features1);
+
+  originalKeys = originalKeys.filter((key) => !excludedKeys.includes(key));
+
+  const activeKeys = isChecked
+    ? [
+        "Pitch",
+        "Harmony",
+        "Loudness",
+        "Energy",
+        "Sporadicity",
+        "Brightness",
+        "Tempo",
+        "Beats",
+        "label",
+      ]
+    : originalKeys;
+
+  function changeKey(key) {
+    if (key == "Pitch") return "chroma_stft_mean";
+    else if (key == "Harmony") return "harmony_mean";
+    else if (key == "Loudness") return "rms_mean";
+    else if (key == "Energy") return "rolloff_mean";
+    else if (key == "Sporadicity") return "spectral_bandwidth_mean";
+    else if (key == "Brightness") return "spectral_centroid_mean";
+    else if (key == "Tempo") return "tempo";
+    else if (key == "Beats") return "zero_crossing_rate_mean";
+    else {
+      return key;
+    }
+  }
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
         <Grid xs={3} direction="column" style={columnStyle}>
+          <Switch
+            checked={isChecked}
+            onChange={() => setisChecked(!isChecked)}
+            style={{ color: "#daa520" }}
+            color="warning"
+            size="md"
+          />
+          <Text style={sectionTitleStyle}>
+            {isChecked ? "Standard" : "Scientific"}
+          </Text>
           <Text style={sectionTitleStyle}>Features</Text>
           <table>
             <thead>
@@ -249,10 +293,10 @@ function Orpheus({ userID, endpoint }) {
               </tr>
             </thead>
             <tbody>
-              {keys.map((key, index) => (
+              {activeKeys.map((key, index) => (
                 <tr key={index}>
                   <td>{key}</td>
-                  <td>{JSON.stringify(values[index])}</td>
+                  <td>{JSON.stringify(features1[changeKey(key)])}</td>
                 </tr>
               ))}
             </tbody>
@@ -291,16 +335,7 @@ function Orpheus({ userID, endpoint }) {
     </NextUIProvider>
   );
 }
-const jsonStyle = {
-  fontFamily: "monospace", // Ensures proper spacing for monospace fonts
-  whiteSpace: "pre-wrap", // Preserves white space and line breaks
-  padding: "20px",
-  background: "#f0f0f0",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  overflow: "auto",
-  overflowWrap: "break-word",
-};
+
 const columnStyle = {
   padding: "20px",
   border: "1px solid #ddd",
@@ -318,7 +353,6 @@ const formStyle = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  background: "black",
 };
 
 const inputStyle = {
