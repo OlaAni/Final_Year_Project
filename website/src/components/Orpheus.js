@@ -6,7 +6,15 @@ import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
 const { app, database, storage } = require("@/components/firebase");
 
 import { NextUIProvider, yellow } from "@nextui-org/react";
-import { Button, Link, Grid, Spacer, Text, Switch } from "@nextui-org/react";
+import {
+  Button,
+  Link,
+  Grid,
+  Spacer,
+  Text,
+  Switch,
+  Popover,
+} from "@nextui-org/react";
 import { color } from "framer-motion";
 
 function Orpheus({ userID, endpoint }) {
@@ -122,6 +130,7 @@ function Orpheus({ userID, endpoint }) {
     const url = endpoint + "/chat";
 
     console.log(endpoint);
+    addMessage("You: " + userInput);
 
     var options = {
       method: "POST",
@@ -138,8 +147,6 @@ function Orpheus({ userID, endpoint }) {
         userID: userID,
       });
     }
-
-    addMessage("You: " + userInput);
     setIsLoading(true);
 
     const response = await fetch(url, options);
@@ -253,7 +260,7 @@ function Orpheus({ userID, endpoint }) {
         "Brightness",
         "Tempo",
         "Beats",
-        "label",
+        "Genre",
       ]
     : originalKeys;
 
@@ -266,8 +273,32 @@ function Orpheus({ userID, endpoint }) {
     else if (key == "Brightness") return "spectral_centroid_mean";
     else if (key == "Tempo") return "tempo";
     else if (key == "Beats") return "zero_crossing_rate_mean";
+    else if (key == "Genre") return "label";
     else {
       return key;
+    }
+  }
+
+  function displayMeaning(key) {
+    if (key == "Pitch" || key == "chroma_stft_mean")
+      return "High values usually denote metal or hiphop, low values denote classical or jazz";
+    else if (key == "Harmony" || key == "harmony_mean")
+      return "High values usually denote hiphop and pop, low values metal and rock";
+    else if (key == "Loudness" || key == "rms_mean")
+      return "High values usually denote hiphop and pop, low values reggae and jazz";
+    else if (key == "Energy" || key == "rolloff_mean")
+      return "High values usually denot pop, low values blues and classical";
+    else if (key == "Sporadicity" || key == "spectral_bandwidth_mean")
+      return "High values usually denote disco and pop, low values country and classical";
+    else if (key == "Brightness" || key == "spectral_centroid_mean")
+      return "High values usually denote disco and pop, low values classical and blues";
+    else if (key == "Tempo" || key == "tempo")
+      return "Songs dont tend to differ";
+    else if (key == "Beats" || key == "zero_crossing_rate_mean")
+      return "High values usually denote pop and jazz, low values jazz";
+    else if (key == "label" || key == "Genre") return "How right was I???";
+    else {
+      return "Upload some songs!!!";
     }
   }
   return (
@@ -295,7 +326,18 @@ function Orpheus({ userID, endpoint }) {
             <tbody>
               {activeKeys.map((key, index) => (
                 <tr key={index}>
-                  <td>{key}</td>
+                  <td>
+                    <Popover placement={"left"}>
+                      <Popover.Trigger>
+                        <Button auto bordered color="secondary">
+                          {key}
+                        </Button>
+                      </Popover.Trigger>
+                      <Popover.Content>
+                        <Text css={{ p: "$10" }}>{displayMeaning(key)}</Text>
+                      </Popover.Content>
+                    </Popover>
+                  </td>
                   <td>{JSON.stringify(features1[changeKey(key)])}</td>
                 </tr>
               ))}

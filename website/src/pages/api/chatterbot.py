@@ -217,7 +217,7 @@ patterns = [
     [{"LOWER": "how"}, {"LOWER": "are"}, {"LOWER": "you"}],
     [{"LOWER": "find"}, {"LOWER": "this"}, {"LOWER": "song"}, {"LOWER": "but"}, {"LOWER": {"REGEX": ".*"}}],
     [{"LOWER": "find"}, {"LOWER": "similiar"}, {"LOWER": "songs"}],
-
+    [{"LOWER": "what"}, {"LOWER": "is"}],
 ]
 
 responses = {
@@ -251,8 +251,10 @@ responses = {
     "general": [
         [{"LOWER": "new"}],
         [{"LOWER": "bored"}],
-        [{"LOWER": "what"}],[{"LOWER": "is"}],[{"LOWER": "your"}],[{"LOWER": "name"}],
+        [{"LOWER": "what"},{"LOWER": "is"},{"LOWER": "your"},{"LOWER": "name"}],
+        [{"LOWER": "what"},{"LOWER": "is"},{"LOWER": {"REGEX": ".*"}}],
     ],    
+
 }
 
 
@@ -269,12 +271,27 @@ for category, patterns in responses.items():
 
 
 def general(user_input):
-    ##history of prevois questions
     newString = ""
     if user_input.find("name")!=-1:
         newString = "My name is DJ ORPHEUS, no need tell me yours"
     elif user_input.find("bored")!=-1:
         newString = "Thats actually crazy"
+    elif "pitch" in user_input or "chroma" in user_input:
+        newString =  "Chroma or Pitch is represents the average pitch of the musical content. A value above 0.40 would be considered high"
+    elif "harmony" in user_input:
+        newString =  "Harmony represents the average harmonic component of an audio file. A value below 0.015 would be consdered low"
+    elif "loudness" in user_input or "rms" in user_input:
+        newString = " Loudness or RMS(Root Mean Sqaure) is a representation of the average amplitude of an audio signal. A value above 0.15 would be considered high"
+    elif "energy" in user_input or "rolloff" in user_input:
+        newString="Energy or Rolloff represents the average change in the frequency specified in percentage of an audio signal. A value above 4600 would be considered high"
+    elif "sporadicty" in user_input or "sprectral_bandwith" in user_input:
+        newString="Sporadicty or Spectral Bandwith represents the average width of an audio signal. A value below 2230 would be considered low"
+    elif "brightness" in user_input or "sprectral_centroid" in user_input:
+        newString="Brightness or Spectral Centroid represents the average of where the centroid of the spectrum is. A value above 2200 would be considered high"
+    elif "tempo" in user_input:
+        newString="Tempo represents the amount of beats per minute within an audio file."
+    elif "beats" in user_input or "zero_crossing_rate" in user_input:
+        newString=" Beats or Zero Crossing rate represents the average amount the signal of an audio file changes its sign. A value below 0.1 would be considered low"
 
     return newString
 
@@ -316,9 +333,10 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
         if category == "greetings":
+            print("eefeef")
             return "Hello! How can I assist you?",None,None,None,None
         elif category == "inquiries":
-           return "I'm just the world's best DJ. How can I assist you?",None,None,None,None
+           return "I'm just the world's best DJ. How can I assist you?",None,None,None,None      
         elif category == "like":
             print("Loading....")  
             # extracted_word = doc[1].text
@@ -331,7 +349,7 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
             label = label_encoder.inverse_transform(features1['label'])[0]
             high = confidence_score(genreProb)
 
-            strLabel = "You ", keyword , extracted_word," They seem to make " ,label," Im saying with", high[0][1],"% confidence"
+            strLabel = "You ", keyword , extracted_word," They seem to make " +label+". Im saying with "+ str(high[0][1])+"% confidence"
             return strLabel, None, features1,None, high
         elif category == "find_increased":
             if features1 is None:
@@ -407,6 +425,8 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
             sim = find_sim(pred)
             songs=[]   
             return "I have some songs that i think you might like", sim,pred, None,None
+        
+
             
     else:
         return "I'm sorry, I don't understand that.",None,None,None,None
@@ -422,7 +442,7 @@ def extract(name):
     label = label_encoder.inverse_transform(features1['label'])[0]
     high = confidence_score(genreProb)
 
-    strLabel="This song is sounding a lot like the ", label," genre. Im saying with ", high[0][1],"% confidence"
+    strLabel="This song is sounding a lot like the "+ label+" genre. Im saying with "+ str(high[0][1])+"% confidence"
     return features1,strLabel, high
 
 
@@ -477,7 +497,6 @@ def chatbot():
         if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
             if(songs.empty != True):
                 songs = songs.to_json()
-
 
         return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
 

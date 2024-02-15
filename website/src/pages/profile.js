@@ -4,7 +4,14 @@ import { getDatabase, ref, child, get, remove } from "firebase/database";
 import { getIronSession } from "iron-session";
 
 import { NextUIProvider } from "@nextui-org/react";
-import { Button, Link, Table, TableColumn, Spacer } from "@nextui-org/react";
+import {
+  Button,
+  Link,
+  Table,
+  TableColumn,
+  Spacer,
+  Text,
+} from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
 import Head from "next/head";
@@ -20,9 +27,6 @@ export default function Profile({ userID, songsData, headers }) {
           setTableData(
             tableData.filter((item) => Object.values(item)[0] !== id)
           );
-
-          console.log("sss'" + id + "'");
-        } else {
         }
       })
       .catch((error) => {
@@ -36,50 +40,58 @@ export default function Profile({ userID, songsData, headers }) {
         <title>Profile</title>
       </Head>
       <Nav />
-      {/* {userID ? <p>This is you id: {userID}</p> : <p>Loading...</p>} */}
+      {/* {headers ? <p>This is you id: {headers}</p> : <p>Loading...</p>} */}
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <table>
-          <thead>
-            <tr>
-              {headers.map((header) => (
-                <th
-                  key={header}
-                  style={{
-                    fontSize: "10px",
-                    backgroundColor: "white",
-                    border: "2px solid #ddd",
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((item, index) => (
-              <tr key={index}>
+        {songsData === "no" ? (
+          <Text
+            css={{ fontSize: "40px", fontWeight: "bold", marginBottom: "10px" }}
+          >
+            Upload some Songs!!!
+          </Text>
+        ) : (
+          <table>
+            <thead>
+              <tr>
                 {headers.map((header) => (
-                  <td key={header}>
-                    {JSON.parse(Object.values(item)[1])[0][header]}
-                  </td>
-                ))}
-                <td
-                  style={{
-                    border: "5px solid #ddd",
-                  }}
-                >
-                  <Button
-                    onClick={() => removeSong(userID, Object.values(item)[0])}
-                    style={{ background: "black" }}
+                  <th
+                    key={header}
+                    style={{
+                      fontSize: "10px",
+                      backgroundColor: "white",
+                      border: "2px solid #ddd",
+                    }}
                   >
-                    Delete
-                  </Button>
-                </td>
+                    {header}
+                  </th>
+                ))}
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tableData.map((item, index) => (
+                <tr key={index}>
+                  {headers.map((header) => (
+                    <td key={header}>
+                      {JSON.parse(Object.values(item)[1])[0][header]}
+                    </td>
+                  ))}
+                  <td
+                    style={{
+                      border: "5px solid #ddd",
+                    }}
+                  >
+                    <Button
+                      onClick={() => removeSong(userID, Object.values(item)[0])}
+                      style={{ background: "black" }}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </NextUIProvider>
   );
@@ -127,7 +139,8 @@ export async function getServerSideProps({ req, res }) {
         songsData = Object.entries(songsData);
       } else {
         console.log("No data available");
-        songsData = "Start Uploading";
+        songsData = "no";
+        headers = "no";
       }
     })
     .catch((error) => {
