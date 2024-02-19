@@ -16,6 +16,7 @@ import {
   Popover,
 } from "@nextui-org/react";
 import { color } from "framer-motion";
+import styles from "@/styles/styles.module.css";
 
 function Orpheus({ userID, endpoint }) {
   const [userInput, setUserInput] = useState("");
@@ -29,13 +30,13 @@ function Orpheus({ userID, endpoint }) {
 
   const ChatWindow = ({ messages }) => {
     return (
-      <div style={chatWindowStyle}>
+      <div className={styles.chatWindowStyle}>
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          <div style={messageContainerStyle}>
+          <div className={styles.messageContainerStyle}>
             {messages.map((message, index) => (
-              <div key={index} style={messageStyle}>
+              <div key={index} className={styles.messageStyle}>
                 {message}
               </div>
             ))}
@@ -107,11 +108,11 @@ function Orpheus({ userID, endpoint }) {
   async function getDownloadLink(song) {
     var folder = song[0].match(/([a-zA-Z]+)/);
     var filename = folder[0] + "/" + song[0];
-    console.log(filename);
+    // console.log(filename);
 
     try {
       const url = await getDownloadURL(refStorage(storage, filename));
-      console.log(filename + ":" + url);
+      // console.log(filename + ":" + url);
       return url;
     } catch (error) {
       console.error("Error fetching download link:", error);
@@ -128,8 +129,6 @@ function Orpheus({ userID, endpoint }) {
 
   async function handleSubmit(event) {
     const url = endpoint + "/chat";
-
-    console.log(endpoint);
     addMessage("You: " + userInput);
 
     var options = {
@@ -304,18 +303,21 @@ function Orpheus({ userID, endpoint }) {
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
-        <Grid xs={3} direction="column" style={columnStyle}>
-          <Switch
-            checked={isChecked}
-            onChange={() => setisChecked(!isChecked)}
-            style={{ color: "#daa520" }}
-            color="warning"
-            size="md"
-          />
-          <Text style={sectionTitleStyle}>
+        <Grid xs={3} direction="column" className={styles.columnStyle}>
+          <div className={styles.centeredContainer}>
+            <Switch
+              checked={isChecked}
+              onChange={() => setisChecked(!isChecked)}
+              style={{ color: "#daa520" }}
+              color="warning"
+              size="md"
+            />
+          </div>
+
+          <Text className={styles.sectionTitleStyle}>
             {isChecked ? "Standard" : "Scientific"}
           </Text>
-          <Text style={sectionTitleStyle}>Features</Text>
+          <Text className={styles.sectionTitleStyle}>Features</Text>
           <table>
             <thead>
               <tr>
@@ -344,33 +346,38 @@ function Orpheus({ userID, endpoint }) {
             </tbody>
           </table>
         </Grid>
-        <Grid xs={6} direction="column" style={columnStyle}>
+        <Grid xs={6} direction="column" className={styles.columnStyle}>
           <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
-          <form style={formStyle}>
-            <input
-              type="text"
-              value={userInput}
-              id="user_input"
-              onChange={handleUserInput}
-              style={inputStyle}
-            />
-            <Button color="primary" onPress={handleSubmit}>
-              Chat
-            </Button>
-          </form>
+          <input
+            type="text"
+            value={userInput}
+            id="user_input"
+            onChange={handleUserInput}
+            className={styles.inputStyle}
+          />
+          <Button color="warning" onPress={handleSubmit}>
+            Chat
+          </Button>
         </Grid>
-        <Grid xs={2} direction="column" style={columnStyle}>
-          <input type="file" onChange={uploadFile} style={fileInputStyle} />
+        <Grid xs={2} direction="column" className={styles.columnStyle}>
+          <input
+            type="file"
+            onChange={uploadFile}
+            className={styles.fileInputStyle}
+          />
           <Spacer y={3} />
-          <Text style={sectionTitleStyle}>Confidence Breakdown</Text>
-          <ConfidenceScores scores={confidence} />
+          <Text className={styles.sectionTitleStyle}>Confidence Breakdown</Text>
+          <div className={styles.centeredContainer}>
+            <ConfidenceScores scores={confidence} />
+          </div>
           <Spacer y={3} />
 
-          <Text style={sectionTitleStyle}>Songs</Text>
+          <Text className={styles.sectionTitleStyle}>Songs</Text>
           <RecoSongs songs={songs} />
+
           <Spacer y={3} />
-          <Text style={sectionTitleStyle}>Spotify</Text>
+          <Text className={styles.sectionTitleStyle}>Spotify</Text>
           <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
         </Grid>
       </Grid.Container>
@@ -378,54 +385,6 @@ function Orpheus({ userID, endpoint }) {
   );
 }
 
-const columnStyle = {
-  padding: "20px",
-  border: "1px solid #ddd",
-  borderRadius: "8px",
-  background: "#fff",
-};
-
-const sectionTitleStyle = {
-  fontSize: "18px",
-  fontWeight: "bold",
-  marginBottom: "10px",
-};
-
-const formStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-};
-
-const inputStyle = {
-  marginBottom: "10px",
-  padding: "8px",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
-};
-
-const fileInputStyle = {
-  marginBottom: "10px",
-};
-const chatWindowStyle = {
-  border: "1px solid #ddd",
-  borderRadius: "8px",
-  minHeight: "300px",
-  maxHeight: "500px",
-  overflowY: "auto",
-  padding: "10px",
-};
-
-const messageContainerStyle = {
-  overflowY: "auto",
-};
-
-const messageStyle = {
-  marginBottom: "8px",
-  padding: "8px",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
-};
 module.exports = {
   Orpheus,
 };

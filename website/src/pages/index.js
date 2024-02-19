@@ -15,7 +15,6 @@ export default function Home({ userID, endpoint }) {
       <Nav />
 
       <Orpheus userID={userID} endpoint={endpoint} />
-      
     </NextUIProvider>
   );
 }
@@ -25,7 +24,7 @@ export async function getServerSideProps({ req, res }) {
     cookieName: process.env.COOKIE_NAME,
     password: process.env.SESSION_PASSWORD,
   });
-  console.log(process.env.API_ENDPOINT)
+  console.log(process.env.API_ENDPOINT);
 
   if (session.userID == undefined) {
     return {
@@ -40,7 +39,7 @@ export async function getServerSideProps({ req, res }) {
     props: {
       email: session.email,
       userID: session.userID,
-      endpoint : process.env.API_ENDPOINT
+      endpoint: process.env.API_ENDPOINT,
     },
   };
 }

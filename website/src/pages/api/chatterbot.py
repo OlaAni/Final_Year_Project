@@ -18,6 +18,7 @@ from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
 import xgboost
 import joblib
+import random
 
 
 #model
@@ -182,6 +183,8 @@ def search(query):
 
     search_response = youtube.search().list(q=query,type='video',part='id,snippet',maxResults=1).execute()
 
+
+
     for search_result in search_response.get('items', []):
         video_id = search_result['id']['videoId']
         # video_title = search_result['snippet']['title']
@@ -252,6 +255,7 @@ responses = {
         [{"LOWER": "new"}],
         [{"LOWER": "bored"}],
         [{"LOWER": "what"},{"LOWER": "is"},{"LOWER": "your"},{"LOWER": "name"}],
+        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "like"}],
         [{"LOWER": "what"},{"LOWER": "is"},{"LOWER": {"REGEX": ".*"}}],
     ],    
 
@@ -262,7 +266,8 @@ fast_words = ["faster","quicker"]
 slow_words = ["slower","calmer"]
 loud_words = ["louder","screamer"]
 quiet_words = ["softer","quieter"]
-#
+darker_words = ["happier", "brighter"]
+brighter_words = ["darker", "sadder"]
 
 
 for category, patterns in responses.items():
@@ -276,6 +281,8 @@ def general(user_input):
         newString = "My name is DJ ORPHEUS, no need tell me yours"
     elif user_input.find("bored")!=-1:
         newString = "Thats actually crazy"
+    elif user_input.find("like")!=-1:
+        newString = "You don't want that answer lil bro"
     elif "pitch" in user_input or "chroma" in user_input:
         newString =  "Chroma or Pitch is represents the average pitch of the musical content. A value above 0.40 would be considered high"
     elif "harmony" in user_input:
@@ -308,12 +315,12 @@ def search_spotify(genres, tempo):
 
 
 
-    seed_genres = [genres[0]]
+    seed_genres = [genres]
     target_tempo = int(tempo)
-    min = target_tempo * 0.9
-    max = target_tempo * 1.1
+    min = target_tempo * 0.5
+    max = target_tempo * 1.5
 
-
+    print(seed_genres)
     recommendations = spotifySearcher.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
 
     if recommendations['tracks']:
@@ -326,7 +333,7 @@ def search_spotify(genres, tempo):
         return 'No recommendations found from spotify.'
 
 
-def chatbot_response(user_input, amoSim, features1=None, userID=None):
+def chatbot_response(user_input, features1=None, userID=None):
     doc = nlp(user_input)
     matches = matcher(doc)
     if matches:
@@ -372,19 +379,30 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
                         valid=True
                     elif(s in loud_words):
                         features = 'rms_mean'
-                        value = 50
+                        value =value/100
                         valid=True
                     elif(s in quiet_words):
                         features = 'rms_mean'
-                        value = -50
+                        value = -value/100
                         valid=True
-
+                    elif(s in brighter_words):
+                        features = 'spectral_centroid_mean'
+                        value = value/100
+                        valid=True
+                    elif(s in darker_words):
+                        features = 'spectral_centroid_mean'
+                        value = -value/100
+                        valid=True
                 if(valid):
                     new_features = features1
                     new_features[features]+= value
-                    print(value)
                     songs = find_sim(new_features)
-                    return "Here are some of those increased features", songs, features1,None,None
+                    randomness = random.randint(0,9)
+                    print(randomness)
+                    if(randomness>5):
+                        return "Here are some of those increased features", songs, features1,None,None
+                    else:
+                        return "Here are some of those increased features, number 1 is my favourite", songs, features1,None,None
                 else:
                     strLabel = "I'm sorry, but im going to need a valid song feature"
                     return strLabel, None,None,None,None
@@ -394,20 +412,15 @@ def chatbot_response(user_input, amoSim, features1=None, userID=None):
                 strLabel=  "Exctract a song to use this great feature"
                 return strLabel,None,None,None,None           
             else:
-                if amoSim>=3:
-                    amoSim=0
-                    return "I just put on some back to back bangers!!!"
-                else:
-                    amoSim = amoSim+1
-                    sim = find_sim(features1)
-                    songs=[]
-                    #for key, value in sim.items():
-                        #print(key," :",round(value,2),"% similiar")
+                sim = find_sim(features1)
+                songs=[]
+                #for key, value in sim.items():
+                    #print(key," :",round(value,2),"% similiar")
 
-                    label = label_encoder.inverse_transform(features1['label'])[0]
-                    spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
+                label = label_encoder.inverse_transform(features1['label'])[0]
+                spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
                     
-                    return "Similiar Songs", sim,features1, spotifySong,None
+                return "Similiar Songs", sim,features1, spotifySong,None
             
         elif category=="general":
             extracted_word = doc.text
@@ -463,7 +476,6 @@ def upload():
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
-    amoSim = 0
     if(request.form.get('user_input') is None):
         data = request.get_json()
         user_input = data.get('user_input')
@@ -488,7 +500,10 @@ def chatbot():
 
         userID = data.get('userID')
         #print("User: ",userID)
-        response,songs,features,recommendation, high = chatbot_response(user_input, amoSim, features1, userID=userID)
+
+        amoSim = data.get("amoSim")
+        print(amoSim)
+        response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
 
         if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
             if(features.empty != True):
