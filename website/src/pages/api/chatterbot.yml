@@ -1,0 +1,56 @@
+openapi: '3.0.2'
+info:
+  title: API Orpheus
+  version: '2.0'
+servers:
+  - url: http://127.0.0.1:5000
+paths:
+  /chat:
+    post:
+      description: ''
+      parameters:
+        - in: query
+          name: userInput
+          schema:
+            type: string
+          description: Input from user to be inputted into the chatbot function
+        - in: query
+          name: features
+          schema:
+            type: string
+          description: extracted musical features
+        - in: query
+          name: userId
+          schema:
+            type: string
+          description: id of user       
+      responses:
+        '200':
+          description: A typical response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  orpheus:
+                    type: string
+                    example: The name is DJ Orpheus
+                  songs:
+                    type: array
+                    example: [song1, song2, song3]
+                  features:
+                    type: string
+                    example: '[{"chroma_stft_mean":0.2914259732,"chroma_stft_var":0.0939848498,"harmony_mean":-0.0000117495,"harmony_var":0.0169314761,"rms_mean":0.1417519599,"rms_var":0.0087820757,"rolloff_mean":2795.910729499,"rolloff_var":1621507.8096568789,"spectral_bandwidth_mean":1389.0684455566,"spectral_bandwidth_var":185156.3212288567,"spectral_centroid_mean":1459.4696908115,"spectral_centroid_var":438024.9988025444,"tempo":123.046875,"zero_crossing_rate_mean":0.0730522374,"zero_crossing_rate_var":0.0019091707,"label":0}]'
+                  recommendation:
+                    type: string
+                    example: [song1]
+                  high:
+                    type: string
+                    example: [song1:confidenceScore, song2:confidenceScore, song3:confidenceScore]
+        '400':
+          description: BAD REQUEST
+        '404':
+          description: NOT FOUND
