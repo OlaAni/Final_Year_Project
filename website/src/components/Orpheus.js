@@ -208,51 +208,59 @@ function Orpheus({ userID, endpoint }) {
   }
 
   async function uploadFile(event) {
-    const url = endpoint + "/chat";
+    const url = endpoint + "/upload";
     console.log(url);
 
     const file = event.target.files[0];
-    console.log(userID);
 
-    const formData = new FormData();
+    if (event.target.files[0].size > 1500000) {
+      // alert(event.target.files[0].size);
+      addMessage(
+        "Orpheus: I can only handle so much data, gonna need you to slim it down"
+      );
+    } else {
+      console.log(userID);
 
-    formData.append("user_input", "extract");
-    formData.append("music_file", file);
+      const formData = new FormData();
 
-    var options = {
-      method: "POST",
-      body: formData,
-    };
-    setIsLoading(true);
+      formData.append("user_input", "extract");
+      formData.append("music_file", file);
 
-    const response = await fetch(url, options);
-    const result = await response.json();
+      var options = {
+        method: "POST",
+        body: formData,
+      };
+      setIsLoading(true);
 
-    if (result.status == "OK") {
-      addMessage("Orpheus: " + result.Orpheus);
+      const response = await fetch(url, options);
+      const result = await response.json();
 
-      if (result.confidence != null) {
-        setConfidence(result.confidence);
-        console.log(result.confidence);
+      if (result.status == "OK") {
+        addMessage("Orpheus: " + result.Orpheus);
+
+        if (result.confidence != null) {
+          setConfidence(result.confidence);
+          console.log(result.confidence);
+        }
+
+        if (result.features != null) {
+          setFeatures(result.features);
+
+          console.log(userID);
+          const dataRef = ref(database, "users/" + userID);
+
+          const newPushRef = push(dataRef);
+          set(newPushRef, result.features)
+            .then(() => {
+              console.log("Data pushed successfully!");
+            })
+            .catch((error) => {
+              console.error("Error pushing data:", error);
+            });
+        }
       }
-
-      if (result.features != null) {
-        setFeatures(result.features);
-
-        console.log(userID);
-        const dataRef = ref(database, "users/" + userID);
-
-        const newPushRef = push(dataRef);
-        set(newPushRef, result.features)
-          .then(() => {
-            console.log("Data pushed successfully!");
-          })
-          .catch((error) => {
-            console.error("Error pushing data:", error);
-          });
-      }
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   // const jsonData =

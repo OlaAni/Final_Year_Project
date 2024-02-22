@@ -196,15 +196,22 @@ def search(query):
 
     video = YouTube(url)
 
-    stream = video.streams.filter(only_audio=True).first()
-    stream.download(filename=f"musicaudio.mp3")
-    sound = AudioSegment.from_file(r"musicaudio.mp3")
-    start_time = 0  
-    end_time = 30 * 1000
+    video_duration_seconds = video.length
+    video_duration_minutes = video_duration_seconds / 60
 
-    audio_segment = sound[start_time:end_time]
+    if video_duration_minutes < 6:
+        stream = video.streams.filter(only_audio=True).first()
+        stream.download(filename=f"musicaudio.mp3")
+        sound = AudioSegment.from_file(r"musicaudio.mp3")
+        start_time = 0  
+        end_time = 30 * 1000
 
-    audio_segment.export(r"music/downloaded/musicaudio.mp3", format="mp3")
+        audio_segment = sound[start_time:end_time]
+
+        audio_segment.export(r"music/downloaded/musicaudio.mp3", format="mp3")
+        return True
+    return False
+    
 
 
 
@@ -397,16 +404,19 @@ def chatbot_response(user_input, features1=None, userID=None):
             print("Loading....")  
             # extracted_word = doc[1].text
             before, keyword,extracted_word = doc.text.partition(doc[1].text)
-            search(extracted_word)
-            features1 = extract_features(r"music/downloaded/musicaudio.mp3")
-            genre1 = xgb.predict(features1)
-            genreProb = xgb.predict_proba(features1)
-            features1['label'] = genre1[0]
-            label = label_encoder.inverse_transform(features1['label'])[0]
-            high = confidence_score(genreProb)
+            if(search(extracted_word)==True):
+                features1 = extract_features(r"music/downloaded/musicaudio.mp3")
+                genre1 = xgb.predict(features1)
+                genreProb = xgb.predict_proba(features1)
+                features1['label'] = genre1[0]
+                label = label_encoder.inverse_transform(features1['label'])[0]
+                high = confidence_score(genreProb)
 
-            strLabel = "You ", keyword , extracted_word," They seem to make " +label+". Im saying with "+ str(high[0][1])+"% confidence"
-            return strLabel, None, features1,None, high
+                strLabel = "You " +keyword +" "+ str(extracted_word) + ". Based off the first 30 seconds of a song, it seems to be " +label+". Im saying that with "+ str(high[0][1])+"% confidence"
+                return strLabel, None, features1,None, high
+            else:
+                strLabel = "Way to much content for me to process, narrow your keywords please"
+                return strLabel, None, None,None, None
         elif category == "find_change":
             if features1 is None:
                 strLabel=  "Exctract a song to use this great feature"
@@ -628,50 +638,36 @@ CORS(app)
 @app.route('/upload', methods=['POST'])
 def upload():
     data = request.files['music_file']
-
-    data.save('downloadedTest.mp3')
-    return jsonify({"status":"OK"})
+    name = "downloadedTest.mp3"
+    data.save(name)
+    features, response,high = extract(name)
+    features = features.to_json(orient='records')
+    return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
 
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
-
-    if(request.form.get('user_input') is None):
-        data = request.get_json()
-        user_input = data.get('user_input')
-        extraction=""
+    data = request.get_json()
+    if(data.get('features')!=None):
+        features1 = data.get('features')
+        features1 = pd.read_json(features1)
     else:
-        extraction = request.form.get('user_input')
+        features1=None
+        
+    user_input = data.get('user_input')
+    userID = data.get('userID')
 
-    if(extraction == 'extract'):
-        data = request.files['music_file']
-        name = "downloadedTest.mp3"
-        data.save(name)
-        features, response,high = extract(name)
-        features = features.to_json(orient='records')
+    response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
 
-        return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
-    else:
-        if(data.get('features')!=None):
-            features1 = data.get('features')
-            # print(features1)
-            features1 = pd.read_json(features1)
-        else:
-            features1=None
+    if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
+        if(features.empty != True):
+            features = features.to_json(orient='records')
 
-        userID = data.get('userID')
+    if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
+        if(songs.empty != True):
+            songs = songs.to_json()
 
-        response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
-
-        if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
-            if(features.empty != True):
-                features = features.to_json(orient='records')
-
-        if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
-            if(songs.empty != True):
-                songs = songs.to_json()
-
-        return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
-
+    return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
+    
 if __name__ == '__main__':
     app.run(debug=True)
