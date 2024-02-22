@@ -19,6 +19,7 @@ from sklearn.preprocessing import LabelEncoder
 import xgboost
 import joblib
 import random
+import re
 
 
 #model
@@ -221,6 +222,9 @@ patterns = [
     [{"LOWER": "find"}, {"LOWER": "this"}, {"LOWER": "song"}, {"LOWER": "but"}, {"LOWER": {"REGEX": ".*"}}],
     [{"LOWER": "find"}, {"LOWER": "similiar"}, {"LOWER": "songs"}],
     [{"LOWER": "what"}, {"LOWER": "is"}],
+    [{"LOWER": "increase"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
+    [{"LOWER": "decrease"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
+
 ]
 
 responses = {
@@ -232,9 +236,18 @@ responses = {
         [{"LOWER": "how"}, {"LOWER": "are"}, {"LOWER": "you"}],
     ],
 
-    "find_increased": [
-        [{"LOWER": "find"}],
+
+    "find_change": [
+    [{"LOWER": "increase"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
+    [{"LOWER": "decrease"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
+
     ],
+    "find_change_simple": [
+
+    [{"LOWER": "make"}, {"LOWER": "it"}, {"LOWER": {"REGEX": ".*"}}],
+
+    ],
+ 
     "predicitions": [
         [{"LOWER": "recos"}],
     ],
@@ -251,6 +264,11 @@ responses = {
         [{"LOWER": "i"}, {"LOWER": "need"},  {"LOWER": {"REGEX": ".*"}}],
     ],
 
+    "give_me": [
+        [{"LOWER": "give"}, {"LOWER": "me"}, {"LOWER": "a"},  {"LOWER": {"REGEX": ".*"}}, {"LOWER": "song"},],
+
+    ],
+
     "general": [
         [{"LOWER": "new"}],
         [{"LOWER": "bored"}],
@@ -261,13 +279,6 @@ responses = {
 
 }
 
-
-fast_words = ["faster","quicker"]
-slow_words = ["slower","calmer"]
-loud_words = ["louder","screamer"]
-quiet_words = ["softer","quieter"]
-darker_words = ["happier", "brighter"]
-brighter_words = ["darker", "sadder"]
 
 
 for category, patterns in responses.items():
@@ -302,6 +313,37 @@ def general(user_input):
 
     return newString
 
+def give_me_a_song(user_input):
+    newString = ""
+    # target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
+    if not [genre for genre in target_name if genre in user_input]:
+        newString = "song must be real"
+        return newString
+    
+
+    if "pop" in user_input:
+        newString =  "Pop?? feeling a bit to upbeat?"
+    elif "blues" in user_input:
+        newString =  "Blues?? feeling a bit to sad?"
+    elif "country" in user_input:
+        newString =  "Country?? YE YE Heres a howdy song for you"
+    elif "rock" in user_input:
+        newString =  "Rock?? Rock on sibling"
+    elif "hiphop" in user_input:
+        newString =  "Hiphop?? let me put you on some bangers?"
+    elif "jazz" in user_input:
+        newString =  "Jazz?? Giant steps best jazz song, this probs not jazz"
+    elif "metal" in user_input:
+        newString =  "Metal?? AHHHHHHHHHHHHHHHHHHHHH!"
+    elif "reggae" in user_input:
+        newString =  "Reggae?? you are jamican me crazy.. that was bad sorry"
+    elif "classical" in user_input:
+        newString =  "Classical?? Amadeus ain't got nothing on me "
+    elif "disco" in user_input:
+        newString =  "Disco?? BOOGIE WONDERLAND" 
+
+    newString = "give_me_a_song"+" " +newString  
+    return newString
 
 def search_spotify(genres, tempo):
     import spotipy
@@ -332,15 +374,22 @@ def search_spotify(genres, tempo):
     else:
         return 'No recommendations found from spotify.'
 
+fast_words = ["faster","quicker"]
+slow_words = ["slower","calmer"]
+loud_words = ["louder","screamer"]
+quiet_words = ["softer","quieter"]
+darker_words = ["happier", "brighter"]
+brighter_words = ["darker", "sadder"]
 
 def chatbot_response(user_input, features1=None, userID=None):
+    user_input = user_input.lower()
     doc = nlp(user_input)
     matches = matcher(doc)
     if matches:
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
+        # print(f"Matched category: {category}, Span: {doc[start:end].text}")
         if category == "greetings":
-            print("eefeef")
             return "Hello! How can I assist you?",None,None,None,None
         elif category == "inquiries":
            return "I'm just the world's best DJ. How can I assist you?",None,None,None,None      
@@ -358,14 +407,123 @@ def chatbot_response(user_input, features1=None, userID=None):
 
             strLabel = "You ", keyword , extracted_word," They seem to make " +label+". Im saying with "+ str(high[0][1])+"% confidence"
             return strLabel, None, features1,None, high
-        elif category == "find_increased":
+        elif category == "find_change":
             if features1 is None:
                 strLabel=  "Exctract a song to use this great feature"
-                
                 return strLabel,None,None,None,None
             else:
                 words = [token.text for token in doc if token.is_alpha]
                 valid = False
+                increaseVar = -1
+                decreaseVar = -1
+                input = user_input.split(" ")
+
+                try:
+                    increaseVar = input.index("increase")
+                except ValueError:
+                    pass
+  
+                try:
+                    decreaseVar = input.index("decrease")
+                except ValueError:
+                    pass
+                
+                # print(increaseVar,":",decreaseVar)
+                if(increaseVar > decreaseVar):
+                    if(words[increaseVar+2] == "tempo"):
+                        features = 'tempo'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "pitch" or words[increaseVar+2] == "chroma"):
+                        features = 'chroma_stft_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "harmony"):
+                        features = 'harmony_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "loudness" or words[increaseVar+2] == "rms"):
+                        features = 'rms_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "sporadcity" or words[increaseVar+2] == "bandwith"):
+                        features = 'spectral_bandwidth_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "brightness" or words[increaseVar+2] == "centroid"):
+                        features = 'spectral_centroid_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                    elif(words[increaseVar+2] == "beats" or words[increaseVar+2] == "crossingrate"):
+                        features = 'zero_crossing_rate_mean'
+                        value = features1[features]
+                        value = value/100
+                        valid=True
+                else:
+                    if(words[decreaseVar+2] == "tempo"):
+                        features = 'tempo'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "pitch" or words[decreaseVar+2] == "chroma"):
+                        features = 'chroma_stft_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "harmony"):
+                        features = 'harmony_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "loudness" or words[decreaseVar+2] == "rms"):
+                        features = 'rms_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "sporadcity" or words[decreaseVar+2] == "bandwith"):
+                        features = 'spectral_bandwidth_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "brightness" or words[decreaseVar+2] == "centroid"):
+                        features = 'spectral_centroid_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+                    elif(words[decreaseVar+2] == "beats" or words[decreaseVar+2] == "crossingrate"):
+                        features = 'zero_crossing_rate_mean'
+                        value = features1[features]
+                        value = -value/100
+                        valid=True
+
+
+
+                if(valid):
+                    new_features = features1
+                    new_features[features]+= value
+                    songs = find_sim(new_features)
+                    randomness = random.randint(0,9)
+                    if(randomness>5):
+                        return "Here are some of those increased features", songs, features1,None,None
+                    else:
+                        return "Here are some of those increased features, number 1 is my favourite", songs, features1,None,None
+                else:
+                    strLabel = "I'm sorry, but im going to need a valid song feature"
+                    return strLabel, None,None,None,None            
+        elif category == "find_change_simple":
+            if features1 is None:
+                strLabel=  "Exctract a song to use this great feature"
+                return strLabel,None,None,None,None
+            else:
+                words = [token.text for token in doc if token.is_alpha]
+                valid = False
+
                 for s in words:
                     if(s in fast_words):
                         features = 'tempo'
@@ -393,20 +551,19 @@ def chatbot_response(user_input, features1=None, userID=None):
                         features = 'spectral_centroid_mean'
                         value = -value/100
                         valid=True
+                
                 if(valid):
                     new_features = features1
                     new_features[features]+= value
                     songs = find_sim(new_features)
                     randomness = random.randint(0,9)
-                    print(randomness)
                     if(randomness>5):
                         return "Here are some of those increased features", songs, features1,None,None
                     else:
                         return "Here are some of those increased features, number 1 is my favourite", songs, features1,None,None
                 else:
                     strLabel = "I'm sorry, but im going to need a valid song feature"
-                    return strLabel, None,None,None,None
-                
+                    return strLabel, None,None,None,None              
         elif category == "find_sim":      
             if features1 is None:
                 strLabel=  "Exctract a song to use this great feature"
@@ -418,14 +575,16 @@ def chatbot_response(user_input, features1=None, userID=None):
                     #print(key," :",round(value,2),"% similiar")
 
                 label = label_encoder.inverse_transform(features1['label'])[0]
-                spotifySong = "Recommendation from Spotify: ",search_spotify(label,features1['tempo'])
+                spotifySong = "Recommendation from Spotify: "+search_spotify(label,features1['tempo'])
                     
-                return "Similiar Songs", sim,features1, spotifySong,None
-            
+                return "Similiar Songs", sim,features1, spotifySong,None            
         elif category=="general":
             extracted_word = doc.text
             return general(extracted_word),None,None,None,None
-        
+        elif category=="give_me":
+            extracted_word = doc.text
+            info = give_me_a_song(extracted_word)
+            return info,None,None,None,None
         elif category=="predicitions":
             from firebase import firebase
             firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
@@ -476,6 +635,7 @@ def upload():
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
+
     if(request.form.get('user_input') is None):
         data = request.get_json()
         user_input = data.get('user_input')
@@ -494,15 +654,13 @@ def chatbot():
     else:
         if(data.get('features')!=None):
             features1 = data.get('features')
+            # print(features1)
             features1 = pd.read_json(features1)
         else:
             features1=None
 
         userID = data.get('userID')
-        #print("User: ",userID)
 
-        amoSim = data.get("amoSim")
-        print(amoSim)
         response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
 
         if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):

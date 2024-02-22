@@ -28,6 +28,10 @@ function Orpheus({ userID, endpoint }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setisChecked] = useState(false);
 
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max + 10);
+  }
+
   const ChatWindow = ({ messages }) => {
     return (
       <div className={styles.chatWindowStyle}>
@@ -106,13 +110,14 @@ function Orpheus({ userID, endpoint }) {
     });
   };
   async function getDownloadLink(song) {
+    console.log(song);
     var folder = song[0].match(/([a-zA-Z]+)/);
     var filename = folder[0] + "/" + song[0];
     // console.log(filename);
 
     try {
       const url = await getDownloadURL(refStorage(storage, filename));
-      // console.log(filename + ":" + url);
+      console.log(filename + ":" + url);
       return url;
     } catch (error) {
       console.error("Error fetching download link:", error);
@@ -148,32 +153,58 @@ function Orpheus({ userID, endpoint }) {
     }
     setIsLoading(true);
 
-    const response = await fetch(url, options);
-    const result = await response.json();
+    try {
+      const response = await fetch(url, options);
+      const result = await response.json();
+      if (result.status == "OK") {
+        if (result.Orpheus.includes("give_me_a_song")) {
+          const match = result.Orpheus.match(/(\w+)\?/);
+          result.Orpheus = result.Orpheus.replace("give_me_a_song", "");
 
-    if (result.status == "OK") {
-      addMessage("Orpheus: " + result.Orpheus);
+          var num = getRandomInt(89);
+          var song = [match[1].toLowerCase() + ".000" + num + ".wav", 1];
+          var newLink = await getDownloadLink(song);
+          addMessage(
+            <span>
+              Orpheus: {result.Orpheus} Check{" "}
+              <Link href={newLink} target="_blank">
+                here
+              </Link>
+              !!!
+            </span>
+          );
+        } else {
+          addMessage("Orpheus: " + result.Orpheus);
+        }
 
-      if (result.confidence != null) {
-        setConfidence(result.confidence);
+        if (result.confidence != null) {
+          setConfidence(result.confidence);
+        }
+
+        if (result.features != null) {
+          setFeatures(result.features);
+        }
+
+        if (result.songs != null) {
+          console.log(result.songs[0]);
+          setSongs(result.songs);
+        }
+
+        if (result.recommendation != null) {
+          setSpotifySong(result.recommendation);
+        }
+      } else {
+        alert("Status: " + result.status);
       }
 
-      if (result.features != null) {
-        setFeatures(result.features);
-      }
+      setIsLoading(false);
+    } catch (error) {
+      addMessage(
+        "Orpheus: Orpheus Prime seeems to indiposed for a second, try again in a minute"
+      );
 
-      if (result.songs != null) {
-        console.log(result.songs[0]);
-        setSongs(result.songs);
-      }
-
-      if (result.recommendation != null) {
-        setSpotifySong(result.recommendation);
-      }
-    } else {
-      alert("Status: " + result.status);
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   async function uploadFile(event) {
@@ -243,6 +274,7 @@ function Orpheus({ userID, endpoint }) {
     "spectral_centroid_var",
     "zero_crossing_rate_var",
     "rms_var",
+    "filename",
   ];
 
   var originalKeys = Object.keys(features1);
