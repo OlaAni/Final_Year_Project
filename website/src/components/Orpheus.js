@@ -24,7 +24,9 @@ function Orpheus({ userID, endpoint }) {
   const [features, setFeatures] = useState("");
   const [songs, setSongs] = useState([]);
   const [spotifySong, setSpotifySong] = useState("");
-  const [messages, setMessages] = useState([""]);
+  const [messages, setMessages] = useState([
+    "Orpheus: My name is DJ Orpheus The ONE AND ONLY. Upload a song to use my many features. You can look for new songs by using words like increase or decrese then the feature you want changed. You can also search up bands you like too!!!!",
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setisChecked] = useState(false);
 
@@ -414,7 +416,9 @@ function Orpheus({ userID, endpoint }) {
           <Spacer y={3} />
 
           <Text className={styles.sectionTitleStyle}>Songs</Text>
-          <RecoSongs songs={songs} />
+          <div className={styles.centeredReco}>
+            <RecoSongs songs={songs} />
+          </div>
 
           <Spacer y={3} />
           <Text className={styles.sectionTitleStyle}>Spotify</Text>

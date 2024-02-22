@@ -226,7 +226,7 @@ patterns = [
     [{"LOWER": "hello"}],
     [{"LOWER": "hi"}],
     [{"LOWER": "how"}, {"LOWER": "are"}, {"LOWER": "you"}],
-    [{"LOWER": "find"}, {"LOWER": "this"}, {"LOWER": "song"}, {"LOWER": "but"}, {"LOWER": {"REGEX": ".*"}}],
+    [{"LOWER": "find"},{"LOWER": "me"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
     [{"LOWER": "find"}, {"LOWER": "similiar"}, {"LOWER": "songs"}],
     [{"LOWER": "what"}, {"LOWER": "is"}],
     [{"LOWER": "increase"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
@@ -262,6 +262,8 @@ responses = {
     "find_sim": [
         [{"LOWER": "search"},{"LOWER": "for"},{"LOWER": "similiar"},{"LOWER": "songs"}],
         [{"LOWER": "search"},{"LOWER": "for"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
+        [{"LOWER": "find"},{"LOWER": "me"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
+
     ],
 
     "like": [
@@ -653,7 +655,7 @@ def chatbot():
         features1 = pd.read_json(features1)
     else:
         features1=None
-        
+
     user_input = data.get('user_input')
     userID = data.get('userID')
 
