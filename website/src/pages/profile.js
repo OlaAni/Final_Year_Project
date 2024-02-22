@@ -11,13 +11,17 @@ import {
   TableColumn,
   Spacer,
   Text,
+  Switch,
 } from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
 import Head from "next/head";
+import styles from "@/styles/styles.module.css";
 
 export default function Profile({ userID, songsData, headers }) {
   const [tableData, setTableData] = useState(songsData);
+  const [isChecked, setisChecked] = useState(false);
+
   const removeSong = (userId, id) => {
     console.log(userId + " : " + id);
     get(ref(database, "users/" + userId + "/" + id))
@@ -33,6 +37,38 @@ export default function Profile({ userID, songsData, headers }) {
         console.error(error);
       });
   };
+  function changeKey(key) {
+    if (isChecked) {
+      if (key == "chroma_stft_mean") return "Pitch";
+      else if (key == "harmony_mean") return "Harmony";
+      else if (key == "rms_mean") return "Loudness";
+      else if (key == "rolloff_mean") return "Energy";
+      else if (key == "spectral_bandwidth_mean") return "Sporadicity";
+      else if (key == "spectral_centroid_mean") return "Brightness";
+      else if (key == "tempo") return "Tempo";
+      else if (key == "zero_crossing_rate_mean") return "Beats";
+      else if (key == "label") return "Genre";
+    } else {
+      return key;
+    }
+  }
+
+  function convertGenre(key, value) {
+    if (key == "label" || key == "Genre") {
+      if (value == "0") return "blues";
+      else if (value == "1") return "classical";
+      else if (value == "2") return "country";
+      else if (value == "3") return "disco";
+      else if (value == "4") return "hiphop";
+      else if (value == "5") return "jazz";
+      else if (value == "6") return "metal";
+      else if (value == "7") return "pop";
+      else if (value == "8") return "reggae";
+      else if (value == "9") return "rock";
+    } else {
+      return value;
+    }
+  }
 
   return (
     <NextUIProvider>
@@ -41,6 +77,18 @@ export default function Profile({ userID, songsData, headers }) {
       </Head>
       <Nav />
       {/* {headers ? <p>This is you id: {headers}</p> : <p>Loading...</p>} */}
+      <div className={styles.centeredContainer}>
+        <Switch
+          checked={isChecked}
+          onChange={() => setisChecked(!isChecked)}
+          style={{ color: "#daa520" }}
+          color="warning"
+          size="md"
+        />
+      </div>
+      <Text className={styles.sectionTitleStyle}>
+        {isChecked ? "Standard" : "Scientific"}
+      </Text>
       <div style={{ display: "flex", justifyContent: "center" }}>
         {songsData === "no" ? (
           <Text
@@ -61,7 +109,7 @@ export default function Profile({ userID, songsData, headers }) {
                       border: "2px solid #ddd",
                     }}
                   >
-                    {header}
+                    {changeKey(header)}
                   </th>
                 ))}
                 <th>Actions</th>
@@ -72,7 +120,10 @@ export default function Profile({ userID, songsData, headers }) {
                 <tr key={index}>
                   {headers.map((header) => (
                     <td key={header}>
-                      {JSON.parse(Object.values(item)[1])[0][header]}
+                      {convertGenre(
+                        header,
+                        JSON.parse(Object.values(item)[1])[0][header]
+                      )}
                     </td>
                   ))}
                   <td
