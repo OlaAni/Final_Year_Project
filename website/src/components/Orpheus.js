@@ -1,11 +1,14 @@
 import { getIronSession } from "iron-session";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
+import * as React from "react";
 
 const { app, database, storage } = require("@/components/firebase");
-
-import { NextUIProvider, yellow } from "@nextui-org/react";
+import { BarChart } from "@mui/x-charts/BarChart";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
+import { Input, NextUIProvider, yellow } from "@nextui-org/react";
 import {
   Button,
   Link,
@@ -17,9 +20,10 @@ import {
 } from "@nextui-org/react";
 import { color } from "framer-motion";
 import styles from "@/styles/styles.module.css";
+import useDownloader from "react-use-downloader";
 
 function Orpheus({ userID, endpoint }) {
-  const [userInput, setUserInput] = useState("");
+  // const [userInput, setUserInput] = useState("");
   const [confidence, setConfidence] = useState([""]);
   const [features, setFeatures] = useState("");
   const [songs, setSongs] = useState([]);
@@ -29,7 +33,16 @@ function Orpheus({ userID, endpoint }) {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setisChecked] = useState(false);
+  const { size, elapsed, percentage, cancel, error, isInProgress } =
+    useDownloader();
 
+  const { download } = useDownloader({
+    mode: "no-cors",
+    credentials: "include",
+    headers: {
+      Authorization: "Bearer TOKEN",
+    },
+  });
   function getRandomInt(max) {
     return Math.floor(Math.random() * max + 10);
   }
@@ -70,11 +83,11 @@ function Orpheus({ userID, endpoint }) {
 
   const RecoSongs = ({ songs }) => {
     const [recos, setRecos] = useState([]);
+    setIsLoading(true);
 
     useEffect(() => {
       const fetchData = async () => {
         const newRecos = [];
-
         await Promise.all(
           songs.map(async (song) => {
             const newEntry = {
@@ -91,19 +104,29 @@ function Orpheus({ userID, endpoint }) {
 
       fetchData();
     }, [songs]);
-
+    setIsLoading(false);
     return recos.map((newEntry, index) => {
       if (recos.length < 1) {
-        return <div>Null</div>;
+        return <div>Nothing here at the moment</div>;
       } else {
         return (
           <div>
             {
               <div key={index}>
-                <Link href={newEntry.link} target="_blank">
+                <Link
+                  href={newEntry.link}
+                  target="_blank"
+                  download={newEntry.name}
+                >
                   {newEntry.name}
                 </Link>{" "}
                 : {parseFloat(newEntry.sim).toFixed(2)}%
+                <AudioPlayer
+                  showJumpControls={false}
+                  autoPlayAfterSrcChange={false}
+                  src={newEntry.link}
+                  onPlay={(e) => console.log("onPlay")}
+                />
               </div>
             }
           </div>
@@ -130,12 +153,14 @@ function Orpheus({ userID, endpoint }) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  const handleUserInput = (event) => {
-    setUserInput(event.target.value);
-  };
+  // const handleUserInput = (event) => {
+  //   setUserInput(event.target.value);
+  // };
 
   async function handleSubmit(event) {
     const url = endpoint + "/chat";
+    const userInput = document.querySelector("#user_input").value;
+
     addMessage("You: " + userInput);
 
     var options = {
@@ -234,34 +259,41 @@ function Orpheus({ userID, endpoint }) {
       };
       setIsLoading(true);
 
-      const response = await fetch(url, options);
-      const result = await response.json();
+      try {
+        const response = await fetch(url, options);
+        const result = await response.json();
 
-      if (result.status == "OK") {
-        addMessage("Orpheus: " + result.Orpheus);
+        if (result.status == "OK") {
+          addMessage("Orpheus: " + result.Orpheus);
 
-        if (result.confidence != null) {
-          setConfidence(result.confidence);
-          console.log(result.confidence);
+          if (result.confidence != null) {
+            setConfidence(result.confidence);
+          }
+
+          if (result.features != null) {
+            setFeatures(result.features);
+
+            console.log(result.features);
+            const dataRef = ref(database, "users/" + userID);
+
+            const newPushRef = push(dataRef);
+            set(newPushRef, result.features)
+              .then(() => {
+                console.log("Data pushed successfully!");
+              })
+              .catch((error) => {
+                console.error("Error pushing data:", error);
+              });
+          }
         }
+        setIsLoading(false);
+      } catch (error) {
+        addMessage(
+          "Orpheus: Make sure your file is wav or mp3 format, homie!! The problem couldn't be me"
+        );
 
-        if (result.features != null) {
-          setFeatures(result.features);
-
-          console.log(userID);
-          const dataRef = ref(database, "users/" + userID);
-
-          const newPushRef = push(dataRef);
-          set(newPushRef, result.features)
-            .then(() => {
-              console.log("Data pushed successfully!");
-            })
-            .catch((error) => {
-              console.error("Error pushing data:", error);
-            });
-        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
   }
 
@@ -291,7 +323,7 @@ function Orpheus({ userID, endpoint }) {
 
   originalKeys = originalKeys.filter((key) => !excludedKeys.includes(key));
 
-  const activeKeys = isChecked
+  var activeKeys = isChecked
     ? [
         "Pitch",
         "Harmony",
@@ -305,6 +337,9 @@ function Orpheus({ userID, endpoint }) {
       ]
     : originalKeys;
 
+  if (originalKeys.length <= 1) {
+    activeKeys = ["Characteristics"];
+  }
   function changeKey(key) {
     if (key == "Pitch") return "chroma_stft_mean";
     else if (key == "Harmony") return "harmony_mean";
@@ -342,6 +377,7 @@ function Orpheus({ userID, endpoint }) {
       return "Upload some songs!!!";
     }
   }
+
   return (
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
@@ -387,15 +423,44 @@ function Orpheus({ userID, endpoint }) {
               ))}
             </tbody>
           </table>
+          {/* <BarChart
+            xAxis={[
+              {
+                id: "barCategories",
+                data: [
+                  "chroma_stft_mean",
+                  "harmony_mean",
+                  "rms_mean",
+                  "rolloff_mean",
+                  "spectral_bandwidth_mean",
+                  "spectral_centroid_mean",
+                  "tempo",
+                  "zero_crossing_rate_mean",
+                ],
+                scaleType: "band",
+              },
+            ]}
+            series={[
+              {
+                data: [
+                  5.068385e-7, 6.550427e-12, 1.924138e-7, 0.004374, 0.002327,
+                  0.002142, 0.000112, 9.746657e-8,
+                ],
+              },
+            ]}
+            width={500}
+            height={300}
+          /> */}
         </Grid>
         <Grid xs={6} direction="column" className={styles.columnStyle}>
           <ChatWindow messages={messages} isLoading={isLoading} />
           <Spacer y={3} />
-          <input
+
+          <Input
             type="text"
-            value={userInput}
+            // value={userInput}
             id="user_input"
-            onChange={handleUserInput}
+            // onChange={handleUserInput}
             className={styles.inputStyle}
           />
           <Button color="warning" onPress={handleSubmit}>
@@ -403,11 +468,17 @@ function Orpheus({ userID, endpoint }) {
           </Button>
         </Grid>
         <Grid xs={2} direction="column" className={styles.columnStyle}>
-          <input
-            type="file"
-            onChange={uploadFile}
-            className={styles.fileInputStyle}
-          />
+          <Text className={styles.sectionTitleStyle}>
+            {features1["filename"]}
+          </Text>
+          <div className={styles.centeredReco}>
+            <input
+              type="file"
+              onChange={uploadFile}
+              className={styles.fileInputStyle}
+            />
+          </div>
+
           <Spacer y={3} />
           <Text className={styles.sectionTitleStyle}>Confidence Breakdown</Text>
           <div className={styles.centeredContainer}>

@@ -20,6 +20,9 @@ import xgboost
 import joblib
 import random
 import re
+import spacy
+from spacy.matcher import Matcher
+# spacy.cli.download("en_core_web_sm")
 
 
 #model
@@ -39,7 +42,7 @@ cols_when_model_builds = xgb.get_booster().feature_names
 
 #find sim music function
 def find_sim(data):
-    placeHoldername = 'test'
+    placeHoldername = 'File'
     data['filename'] = placeHoldername
 
     df_sim = pd.read_csv(r'music_data/features_30_sec.csv')
@@ -113,10 +116,12 @@ def find_pred(result):
     newData = pd.DataFrame(newData)
 
     finalDf = pd.DataFrame()
+
     for i in range(len(newData)):
         df = pd.DataFrame([newData[0][i]])
         finalDf = pd.concat([finalDf, df], ignore_index=True)
 
+    finalDf = finalDf.drop('filename', axis=1)
 
 
     features = pd.DataFrame(columns=finalDf.columns)
@@ -215,9 +220,6 @@ def search(query):
 
 
 
-import spacy
-from spacy.matcher import Matcher
-# spacy.cli.download("en_core_web_sm")
 
 nlp = spacy.load("en_core_web_sm")
 matcher = Matcher(nlp.vocab)
@@ -257,6 +259,8 @@ responses = {
  
     "predicitions": [
         [{"LOWER": "recos"}],
+        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"},{"LOWER": "for"},{"LOWER": "me"}],
+
     ],
 
     "find_sim": [
@@ -605,23 +609,23 @@ def chatbot_response(user_input, features1=None, userID=None):
 
             if pred is None:
                 return "Upload some more songs", None,None, None,None
-
             sim = find_sim(pred)
-            songs=[]   
+            # songs=[]   
             return "I have some songs that i think you might like", sim,pred, None,None
         
 
             
     else:
-        return "I'm sorry, I don't understand that.",None,None,None,None
+        return "I'm sorry, I don't understand that, maybe type it a bit more clearer??.",None,None,None,None
 
 
-def extract(name):
+def extract(name, filename):
     features1 = extract_features(name)
 
     genre1 = xgb.predict(features1)
     genreProb = xgb.predict_proba(features1)
 
+    features1['filename'] = filename
     features1['label'] = genre1[0]
     label = label_encoder.inverse_transform(features1['label'])[0]
     high = confidence_score(genreProb)
@@ -642,8 +646,9 @@ def upload():
     data = request.files['music_file']
     name = "downloadedTest.mp3"
     data.save(name)
-    features, response,high = extract(name)
+    features, response,high = extract(name, data.filename)
     features = features.to_json(orient='records')
+    print(features)
     return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
 
 

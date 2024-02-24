@@ -38,6 +38,7 @@ export default function Profile({ userID, songsData, headers }) {
       });
   };
   function changeKey(key) {
+    if (key == "filename") return "Filename";
     if (isChecked) {
       if (key == "chroma_stft_mean") return "Pitch";
       else if (key == "harmony_mean") return "Harmony";
