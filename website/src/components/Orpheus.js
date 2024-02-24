@@ -382,11 +382,11 @@ function Orpheus({ userID, endpoint }) {
     <NextUIProvider>
       <Grid.Container gap={2} justify="center">
         <Grid xs={3} direction="column" className={styles.columnStyle}>
-          <div className={styles.centeredContainer}>
+          <div className={styles.sectionTitleStyle}>
             <Switch
               checked={isChecked}
               onChange={() => setisChecked(!isChecked)}
-              style={{ color: "#daa520" }}
+              style={{ color: "#daa520", backgroundColor: "#daa520" }}
               color="warning"
               size="md"
             />

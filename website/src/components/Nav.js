@@ -11,6 +11,8 @@ import {
   Card,
 } from "@nextui-org/react";
 import { useRouter } from "next/router";
+import Head from "next/head";
+import styles from "@/styles/styles.module.css";
 
 function Nav() {
   const router = useRouter();
@@ -18,38 +20,13 @@ function Nav() {
   const handler = () => {
     router.push("/logout");
   };
-  const navbarStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "10px 20px",
-    background: "#daa520",
-  };
 
-  const linkStyle = {
-    color: "#black",
-    textDecoration: "none",
-    margin: "0 15px",
-    fontSize: "18px",
-  };
-
-  const logoutContainerStyle = {
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  };
-
-  const buttonStyle = {
-    background: "red",
-    color: "#fff",
-    padding: "8px 12px",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-  };
   return (
     <>
-      <div style={navbarStyle}>
+      <Head>
+        <link rel="shortcut icon" href="/Lyre.png" />
+      </Head>
+      <div className={styles.navbarStyle}>
         <Link href="/" style={{ marginRight: "15px" }}>
           <Image
             width={188}
@@ -59,16 +36,28 @@ function Nav() {
             style={{ objectFit: "contain" }}
           />
         </Link>
-        <Link style={linkStyle} href="/">
+        <Link
+          className={styles.linkStyle}
+          style={{ fontSize: "30px" }}
+          href="/"
+        >
           Orpheus
         </Link>
-        <Link style={linkStyle} href="/profile">
+        <Link
+          className={styles.linkStyle}
+          style={{ fontSize: "30px" }}
+          href="/profile"
+        >
           Profile
         </Link>
-        <div style={logoutContainerStyle}>
-          <button style={buttonStyle} onClick={handler}>
+        <div className={styles.logoutContainerStyle}>
+          <Button
+            className={styles.buttonStyle}
+            style={{ background: "red" }}
+            onClick={handler}
+          >
             Logout
-          </button>
+          </Button>
         </div>
       </div>
     </>

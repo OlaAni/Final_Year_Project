@@ -13,6 +13,7 @@ import {
   Link,
   Grid,
 } from "@nextui-org/react";
+import Head from "next/head";
 
 export default function Login() {
   const router = useRouter();
@@ -44,12 +45,15 @@ export default function Login() {
 
   return (
     <NextUIProvider>
-      <Spacer y={1} />
-      <Spacer y={2.5} />
+      <Head>
+        <title>Login</title>
+        <link rel="shortcut icon" href="/Lyre.png" />
+      </Head>
+      <Spacer y={2} />
       <Row gap={1}>
         <Card css={{ $$cardColor: "#daa520", mw: "600px", margin: "auto" }}>
           <Card.Body>
-            <Text h6 align="center" size={36} css={{ m: 0 }}>
+            <Text h6 align="center" size={40} css={{ m: 0 }}>
               Login
             </Text>
             <Spacer y={2.5} />

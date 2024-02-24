@@ -59,9 +59,41 @@
   border: 1px solid #000000;
 }
 
-.centeredContainer {
+.navbarStyle{
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #daa520;
+};
+
+.linkStyle{
+  color: black;
+  text-decoration: none;
+  margin: 0 15px;
+  font-size: 30px;
+};
+
+.logoutContainerStyle{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+};
+
+.buttonStyle{
+  background-color: red;
+  color: #fff;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+};
+
+
+.centeredContainer {
+  display: grid;
   justify-content: center;
+  align-items: center;
 }
 
 

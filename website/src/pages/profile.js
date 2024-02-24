@@ -78,11 +78,11 @@ export default function Profile({ userID, songsData, headers }) {
       </Head>
       <Nav />
       {/* {headers ? <p>This is you id: {headers}</p> : <p>Loading...</p>} */}
-      <div className={styles.centeredContainer}>
+      <div className={styles.sectionTitleStyle}>
         <Switch
           checked={isChecked}
           onChange={() => setisChecked(!isChecked)}
-          style={{ color: "#daa520" }}
+          style={{ color: "#daa520", backgroundColor: "#daa520" }}
           color="warning"
           size="md"
         />

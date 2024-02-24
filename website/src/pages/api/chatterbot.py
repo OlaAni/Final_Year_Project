@@ -333,7 +333,6 @@ def give_me_a_song(user_input):
         newString = "song must be real"
         return newString
     
-
     if "pop" in user_input:
         newString =  "Pop?? feeling a bit to upbeat?"
     elif "blues" in user_input:
@@ -648,7 +647,6 @@ def upload():
     data.save(name)
     features, response,high = extract(name, data.filename)
     features = features.to_json(orient='records')
-    print(features)
     return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
 
 
