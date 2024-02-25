@@ -413,6 +413,7 @@ def chatbot_response(user_input, features1=None, userID=None):
                 features1 = extract_features(r"music/downloaded/musicaudio.mp3")
                 genre1 = xgb.predict(features1)
                 genreProb = xgb.predict_proba(features1)
+                features1['filename'] = str(extracted_word)
                 features1['label'] = genre1[0]
                 label = label_encoder.inverse_transform(features1['label'])[0]
                 high = confidence_score(genreProb)

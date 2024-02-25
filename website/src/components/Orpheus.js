@@ -1,5 +1,5 @@
 import { getIronSession } from "iron-session";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
 import * as React from "react";
@@ -48,8 +48,14 @@ function Orpheus({ userID, endpoint }) {
   }
 
   const ChatWindow = ({ messages }) => {
+    const chatWindowRef = useRef();
+
+    useEffect(() => {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }, [messages]);
+    //messages allows for use effect to change dependent on it
     return (
-      <div className={styles.chatWindowStyle}>
+      <div className={styles.chatWindowStyle} ref={chatWindowRef}>
         {isLoading ? (
           <div>Loading...</div>
         ) : (
@@ -299,14 +305,23 @@ function Orpheus({ userID, endpoint }) {
 
   // const jsonData =
   //   '[{"chroma_stft_mean":0.2914259732,"chroma_stft_var":0.0939848498,"harmony_mean":-0.0000117495,"harmony_var":0.0169314761,"rms_mean":0.1417519599,"rms_var":0.0087820757,"rolloff_mean":2795.910729499,"rolloff_var":1621507.8096568789,"spectral_bandwidth_mean":1389.0684455566,"spectral_bandwidth_var":185156.3212288567,"spectral_centroid_mean":1459.4696908115,"spectral_centroid_var":438024.9988025444,"tempo":123.046875,"zero_crossing_rate_mean":0.0730522374,"zero_crossing_rate_var":0.0019091707,"label":0}]';
-
+  var roundFeatures = {};
   const jsonData = '[{"Example":"Characteristics"}]';
   if (!Object.keys(features).length) {
-    var features1 = JSON.parse(jsonData)[0];
+    roundFeatures = JSON.parse(jsonData)[0];
   } else {
     var features1 = JSON.parse(features)[0];
     features1["label"] = confidence[0][0];
+    for (const key in features1) {
+      if (key !== "label" && key !== "filename") {
+        roundFeatures[key] = parseFloat(features1[key]).toFixed(3);
+      } else {
+        roundFeatures[key] = features1[key];
+      }
+    }
   }
+
+  console.log(roundFeatures);
 
   const excludedKeys = [
     "chroma_stft_var",
@@ -319,7 +334,7 @@ function Orpheus({ userID, endpoint }) {
     "filename",
   ];
 
-  var originalKeys = Object.keys(features1);
+  var originalKeys = Object.keys(roundFeatures);
 
   originalKeys = originalKeys.filter((key) => !excludedKeys.includes(key));
 
@@ -418,7 +433,7 @@ function Orpheus({ userID, endpoint }) {
                       </Popover.Content>
                     </Popover>
                   </td>
-                  <td>{JSON.stringify(features1[changeKey(key)])}</td>
+                  <td>{roundFeatures[changeKey(key)]}</td>
                 </tr>
               ))}
             </tbody>
@@ -469,7 +484,7 @@ function Orpheus({ userID, endpoint }) {
         </Grid>
         <Grid xs={2} direction="column" className={styles.columnStyle}>
           <Text className={styles.sectionTitleStyle}>
-            {features1["filename"]}
+            {roundFeatures["filename"]}
           </Text>
           <div className={styles.centeredReco}>
             <input
