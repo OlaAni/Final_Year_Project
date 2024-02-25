@@ -314,7 +314,11 @@ function Orpheus({ userID, endpoint }) {
     features1["label"] = confidence[0][0];
     for (const key in features1) {
       if (key !== "label" && key !== "filename") {
-        roundFeatures[key] = parseFloat(features1[key]).toFixed(3);
+        if (key == "Harmony" || key == "harmony_mean") {
+          roundFeatures[key] = parseFloat(features1[key]).toFixed(6);
+        } else {
+          roundFeatures[key] = parseFloat(features1[key]).toFixed(3);
+        }
       } else {
         roundFeatures[key] = features1[key];
       }

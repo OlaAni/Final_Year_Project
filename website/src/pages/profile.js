@@ -67,7 +67,15 @@ export default function Profile({ userID, songsData, headers }) {
       else if (value == "8") return "reggae";
       else if (value == "9") return "rock";
     } else {
-      return value;
+      if (isChecked && !(key == "filename" || key == "Filename")) {
+        if (key == "Harmony" || key == "harmony_mean") {
+          return parseFloat(value).toFixed(6);
+        } else {
+          return parseFloat(value).toFixed(3);
+        }
+      } else {
+        return value;
+      }
     }
   }
 
