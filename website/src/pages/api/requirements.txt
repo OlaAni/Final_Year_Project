@@ -15,5 +15,4 @@ xgboost==2.0.3
 youtube_dl==2021.12.17
 Werkzeug==2.2.2
 gunicorn==19.7.1
-spacy==3.0.0
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.0.0/en_core_web_sm-3.0.0.tar.gz
