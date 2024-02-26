@@ -14,3 +14,4 @@ spotipy==2.23.0
 xgboost==2.0.3
 youtube_dl==2021.12.17
 Werkzeug==2.2.2
+gunicorn==19.7.1

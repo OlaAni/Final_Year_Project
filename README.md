@@ -1,3 +1,8 @@
+## Versions
+Install 3.11
+pip3.11 install -r ./requirements.txt
+py -3.11 chatterbot.py
+
 ## Getting Started
 
 First, run the development server:
@@ -18,3 +23,8 @@ py .\chatterbot.py #
 Ensure python version is 3.11
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+
+Install 3.11
+pip3.11 install -r ./requirements.txt
+py -3.11 chatterbot.py
