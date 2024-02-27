@@ -156,8 +156,7 @@ def confidence_score(proba):
 
 #extract mfeatures from a song
 def extract_features(file):
-    y, sr = librosa.load(file)
-
+    y, sr = librosa.load(file,  duration=30)
 
     chroma_sft = librosa.feature.chroma_stft(y=y, sr=sr)
     rms = librosa.feature.rms(y=y)
