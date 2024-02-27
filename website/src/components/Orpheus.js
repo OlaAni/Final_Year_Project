@@ -54,6 +54,7 @@ function Orpheus({ userID, endpoint }) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }, [messages]);
     //messages allows for use effect to change dependent on it
+    console.log(isLoading);
     return (
       <div className={styles.chatWindowStyle} ref={chatWindowRef}>
         {isLoading ? (
@@ -89,7 +90,7 @@ function Orpheus({ userID, endpoint }) {
 
   const RecoSongs = ({ songs }) => {
     const [recos, setRecos] = useState([]);
-    setIsLoading(true);
+    // setIsLoading(true);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -110,7 +111,7 @@ function Orpheus({ userID, endpoint }) {
 
       fetchData();
     }, [songs]);
-    setIsLoading(false);
+    // setIsLoading(false);
     return recos.map((newEntry, index) => {
       if (recos.length < 1) {
         return <div>Nothing here at the moment</div>;
@@ -168,6 +169,7 @@ function Orpheus({ userID, endpoint }) {
     const userInput = document.querySelector("#user_input").value;
 
     addMessage("You: " + userInput);
+    setIsLoading(true);
 
     var options = {
       method: "POST",
@@ -184,7 +186,6 @@ function Orpheus({ userID, endpoint }) {
         userID: userID,
       });
     }
-    setIsLoading(true);
 
     try {
       const response = await fetch(url, options);
@@ -252,7 +253,7 @@ function Orpheus({ userID, endpoint }) {
         "Orpheus: I can only handle so much data, gonna need you to slim it down"
       );
     } else {
-      console.log(userID);
+      setIsLoading(true);
 
       const formData = new FormData();
 
@@ -263,7 +264,7 @@ function Orpheus({ userID, endpoint }) {
         method: "POST",
         body: formData,
       };
-      setIsLoading(true);
+      // await new Promise((resolve) => setTimeout(resolve, 10000));
 
       try {
         const response = await fetch(url, options);
@@ -324,8 +325,6 @@ function Orpheus({ userID, endpoint }) {
       }
     }
   }
-
-  console.log(roundFeatures);
 
   const excludedKeys = [
     "chroma_stft_var",
@@ -414,6 +413,9 @@ function Orpheus({ userID, endpoint }) {
           <Text className={styles.sectionTitleStyle}>
             {isChecked ? "Standard" : "Scientific"}
           </Text>
+          <Text className={styles.sectionTitleStyle}>
+            {isLoading ? "true" : "false"}
+          </Text>
           <Text className={styles.sectionTitleStyle}>Features</Text>
           <table>
             <thead>
@@ -472,16 +474,10 @@ function Orpheus({ userID, endpoint }) {
           /> */}
         </Grid>
         <Grid xs={6} direction="column" className={styles.columnStyle}>
-          <ChatWindow messages={messages} isLoading={isLoading} />
+          <ChatWindow messages={messages} />
           <Spacer y={3} />
 
-          <Input
-            type="text"
-            // value={userInput}
-            id="user_input"
-            // onChange={handleUserInput}
-            className={styles.inputStyle}
-          />
+          <Input type="text" id="user_input" className={styles.inputStyle} />
           <Button color="warning" onPress={handleSubmit}>
             Chat
           </Button>
