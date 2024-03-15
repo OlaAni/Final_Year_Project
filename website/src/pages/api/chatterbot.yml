@@ -5,6 +5,35 @@ info:
 servers:
   - url: http://127.0.0.1:5000
 paths:
+  /upload:
+    post:
+      description: ''
+      parameters:
+        - in: query
+          name: music_file
+          schema:
+            type: string
+          description: uploaded music file 
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  orpheus:
+                    type: string
+                    example: This song is sounding a lot like the hip hop genre. Im saying with 89% confidence
+                  features:
+                    type: string
+                    example: '[{"chroma_stft_mean":0.2914259732,"chroma_stft_var":0.0939848498,"harmony_mean":-0.0000117495,"harmony_var":0.0169314761,"rms_mean":0.1417519599,"rms_var":0.0087820757,"rolloff_mean":2795.910729499,"rolloff_var":1621507.8096568789,"spectral_bandwidth_mean":1389.0684455566,"spectral_bandwidth_var":185156.3212288567,"spectral_centroid_mean":1459.4696908115,"spectral_centroid_var":438024.9988025444,"tempo":123.046875,"zero_crossing_rate_mean":0.0730522374,"zero_crossing_rate_var":0.0019091707,"label":0}]'
+                  confidence:
+                    type: string
+                    example: [song1:confidenceScore, song2:confidenceScore, song3:confidenceScore]
   /chat:
     post:
       description: ''

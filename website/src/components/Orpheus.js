@@ -413,9 +413,9 @@ function Orpheus({ userID, endpoint }) {
           <Text className={styles.sectionTitleStyle}>
             {isChecked ? "Standard" : "Scientific"}
           </Text>
-          <Text className={styles.sectionTitleStyle}>
+          {/* <Text className={styles.sectionTitleStyle}>
             {isLoading ? "true" : "false"}
-          </Text>
+          </Text> */}
           <Text className={styles.sectionTitleStyle}>Features</Text>
           <table>
             <thead>
