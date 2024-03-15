@@ -1,7 +1,4 @@
 from sklearn.model_selection import train_test_split, cross_val_predict
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn import metrics
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 import librosa
@@ -12,7 +9,6 @@ from pytube import YouTube
 from pydub import AudioSegment
 import youtube_dl
 import os
-import xgboost as xgbo
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
@@ -22,13 +18,32 @@ import random
 import re
 import spacy
 from spacy.matcher import Matcher
+from dotenv import load_dotenv
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from firebase import firebase
+from sklearn.preprocessing import LabelEncoder
+from collections import Counter
+import json
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from pytube import YouTube
+from googleapiclient.discovery import build
+from flask import Flask, request, jsonify
+from flask_cors import CORS 
+
+nlp = spacy.load("en_core_web_sm")
 # spacy.cli.download("en_core_web_sm")
+
+load_dotenv()
+
+DEBUG_LEVEL = os.getenv('DEBUG_LEVEL')
+print("DEBUG_LEVEL: "+str(DEBUG_LEVEL))
 
 
 #model
 df = pd.read_csv(r'music_data/features_3_sec.csv')
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
-from sklearn.preprocessing import LabelEncoder
 label_encoder = LabelEncoder()
 df['label'] =  label_encoder.fit_transform(df['label'])
 
@@ -42,54 +57,51 @@ cols_when_model_builds = xgb.get_booster().feature_names
 
 #find sim music function
 def find_sim(data):
-    placeHoldername = 'File'
+    placeHoldername = 'test'
     data['filename'] = placeHoldername
 
     df_sim = pd.read_csv(r'music_data/features_30_sec.csv')
 
     df_sim = df_sim[['filename','chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 
+
+    label_encoder = LabelEncoder()
     df_sim['label'] = df_sim['label'].astype("string")
     df_sim['label'] =  label_encoder.fit_transform(df_sim['label'])
+
+
 
 
     combined_df = pd.concat([df_sim, data], ignore_index=True)
 
     combined_df = combined_df.set_index('filename')
 
-    genre = combined_df[['label']]
+ 
+    
+    similarity = cosine_similarity(combined_df)
 
-    #https://naomy-gomes.medium.com/the-cosine-similarity-and-its-use-in-recommendation-systems-cb2ebd811ce1 + https://www.kaggle.com/code/andradaolteanu/work-w-audio-data-visualise-classify-recommend/notebook#Machine-Learning-Classification
-    scaled = preprocessing.scale(combined_df)
-    cos_similarity = cosine_similarity(scaled)
-    new_data = pd.DataFrame(cos_similarity)
-    new_data_names = new_data.set_index(genre.index)
-    new_data_names.columns = genre.index
+    sim_df_names = pd.DataFrame(similarity, columns=combined_df.index, index=combined_df.index)
 
-    series = new_data_names[placeHoldername].sort_values(ascending=False)
+    series = sim_df_names[placeHoldername].sort_values(ascending=False)
     series = series.drop(placeHoldername)
 
     series = series.head(3).to_dict()
 
-    from collections import Counter
 
     k = Counter(series)
     
     # Finding 3 highest values
     series = k.most_common(3) 
     
-    #for i in series:
-        #print(i[0]," :",i[1]," ")
-    return series
+    for i in series:
+        print(i[0]," :",i[1]," ")
 
+    return series
 
 
 #users linear regression to predict features of previusly liked music
 def find_pred(result):
-    import json
-    import pandas as pd
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LinearRegression
+
 
     model = LinearRegression()
 
@@ -140,7 +152,6 @@ def find_pred(result):
 
 #returns the highest scores
 def confidence_score(proba):
-    from collections import Counter
     confi = {}
     i=0
     for val in proba[0]:
@@ -156,7 +167,7 @@ def confidence_score(proba):
 
 #extract mfeatures from a song
 def extract_features(file):
-    y, sr = librosa.load(file,  duration=3)
+    y, sr = librosa.load(file,  duration=30)
 
     chroma_sft = librosa.feature.chroma_stft(y=y, sr=sr)
     rms = librosa.feature.rms(y=y)
@@ -179,10 +190,7 @@ def extract_features(file):
 
 #search youtube for a song
 def search(query):
-    from pytube import YouTube
-    from googleapiclient.discovery import build
-
-    api_key = 'AIzaSyCghPkifWFcLs_iN5CCvLIlQwvWBXxIxxY'
+    api_key = os.getenv('YOUTUBE_API_KEY')
 
     youtube = build('youtube', 'v3', developerKey=api_key)
 
@@ -216,11 +224,35 @@ def search(query):
         return True
     return False
     
+def search_spotify(genres, tempo):
+    SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+    SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+
+    client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
+    spotifySearcher = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+
+
+    seed_genres = [genres]
+    target_tempo = int(tempo)
+    min = target_tempo * 0.5
+    max = target_tempo * 1.5
+
+    print(seed_genres)
+    recommendations = spotifySearcher.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
+
+    if recommendations['tracks']:
+        song = recommendations['tracks'][0]
+        song_name = song['name']
+        artist_name = song['artists'][0]['name']
+
+        return f'Song: {song_name} by {artist_name}'
+    else:
+        return 'No recommendations found from spotify.'
 
 
 
 
-nlp = spacy.load("en_core_web_sm")
 matcher = Matcher(nlp.vocab)
 
 patterns = [
@@ -356,34 +388,6 @@ def give_me_a_song(user_input):
     newString = "give_me_a_song"+" " +newString  
     return newString
 
-def search_spotify(genres, tempo):
-    import spotipy
-    from spotipy.oauth2 import SpotifyClientCredentials
-
-    SPOTIPY_CLIENT_ID = 'b0715167b5814e2c92afb73034ed1416'
-    SPOTIPY_CLIENT_SECRET = 'f25f4de9272c49948019dc270b2413d8'
-
-    client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
-    spotifySearcher = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
-
-
-    seed_genres = [genres]
-    target_tempo = int(tempo)
-    min = target_tempo * 0.5
-    max = target_tempo * 1.5
-
-    print(seed_genres)
-    recommendations = spotifySearcher.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
-
-    if recommendations['tracks']:
-        song = recommendations['tracks'][0]
-        song_name = song['name']
-        artist_name = song['artists'][0]['name']
-
-        return f'Song: {song_name} by {artist_name}'
-    else:
-        return 'No recommendations found from spotify.'
 
 fast_words = ["faster","quicker"]
 slow_words = ["slower","calmer"]
@@ -601,7 +605,6 @@ def chatbot_response(user_input, features1=None, userID=None):
             info = give_me_a_song(extracted_word)
             return info,None,None,None,None
         elif category=="predicitions":
-            from firebase import firebase
             firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
             result = firebase.get('/users', userID)
             pred= find_pred(result)
@@ -610,10 +613,7 @@ def chatbot_response(user_input, features1=None, userID=None):
                 return "Upload some more songs", None,None, None,None
             sim = find_sim(pred)
             # songs=[]   
-            return "I have some songs that i think you might like", sim,pred, None,None
-        
-
-            
+            return "I have some songs that i think you might like", sim,pred, None,None          
     else:
         return "I'm sorry, I don't understand that, maybe type it a bit more clearer??.",None,None,None,None
 
@@ -633,8 +633,7 @@ def extract(name, filename):
     return features1,strLabel, high
 
 
-from flask import Flask, request, jsonify
-from flask_cors import CORS 
+
 
 app = Flask("chatterbot")
 CORS(app) 
@@ -642,37 +641,50 @@ CORS(app)
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    data = request.files['music_file']
-    name = "downloadedTest.mp3"
-    data.save(name)
-    features, response,high = extract(name, data.filename)
-    features = features.to_json(orient='records')
-    return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high})
+    try:
+
+        data = request.files['music_file']
+        if(data is None):
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
+
+        name = "downloadedTest.mp3"
+        data.save(name)
+        features, response,high = extract(name, data.filename)
+        features = features.to_json(orient='records')
+        return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high}), 200
+    except Exception as e:
+        return jsonify({"status": "Server Error", "Orpheus": "Uh oh"}), 500
 
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
-    data = request.get_json()
-    if(data.get('features')!=None):
-        features1 = data.get('features')
-        features1 = pd.read_json(features1)
-    else:
-        features1=None
+    try:
+        data = request.get_json()
+        if(data.get('features')!=None):
+            features1 = data.get('features')
+            features1 = pd.read_json(features1)
+        else:
+            features1=None
 
-    user_input = data.get('user_input')
-    userID = data.get('userID')
+        user_input = data.get('user_input')
+        userID = data.get('userID')
 
-    response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
+        if(user_input is None or userID is None):
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
 
-    if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
-        if(features.empty != True):
-            features = features.to_json(orient='records')
+        response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
 
-    if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
-        if(songs.empty != True):
-            songs = songs.to_json()
+        if isinstance(features, pd.DataFrame) or isinstance(features, pd.Series):
+            if(features.empty != True):
+                features = features.to_json(orient='records')
 
-    return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high })
-    
+        if isinstance(songs, pd.DataFrame) or isinstance(songs, pd.Series):
+            if(songs.empty != True):
+                songs = songs.to_json()
+
+        return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high }),200
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "Server Error", "Orpheus": "Uh oh"}), 500
 if __name__ == '__main__':
     app.run(debug=True)
