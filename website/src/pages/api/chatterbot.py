@@ -21,7 +21,6 @@ from spacy.matcher import Matcher
 from dotenv import load_dotenv
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from firebase import firebase
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 import json
@@ -37,7 +36,7 @@ nlp = spacy.load("en_core_web_sm")
 
 load_dotenv()
 
-DEBUG_LEVEL = os.getenv('DEBUG_LEVEL')
+DEBUG_LEVEL = int(os.getenv('DEBUG_LEVEL'))
 print("DEBUG_LEVEL: "+str(DEBUG_LEVEL))
 
 
@@ -70,15 +69,11 @@ def find_sim(data):
     df_sim['label'] =  label_encoder.fit_transform(df_sim['label'])
 
 
-
-
     combined_df = pd.concat([df_sim, data], ignore_index=True)
 
     combined_df = combined_df.set_index('filename')
 
- 
-    
-    similarity = cosine_similarity(combined_df)
+    similarity = cosine_similarity(preprocessing.scale(combined_df))
 
     sim_df_names = pd.DataFrame(similarity, columns=combined_df.index, index=combined_df.index)
 
@@ -92,34 +87,27 @@ def find_sim(data):
     
     # Finding 3 highest values
     series = k.most_common(3) 
-    
-    for i in series:
-        print(i[0]," :",i[1]," ")
+
+    if(DEBUG_LEVEL>2):
+        for i in series:
+            print(i[0]," :",i[1]," ")
 
     return series
 
 
 #users linear regression to predict features of previusly liked music
 def find_pred(result):
-
-
-    model = LinearRegression()
-
-    dfs = []
-
     if(result is None):
         return None
-    
-
     df = pd.DataFrame.from_dict(result, orient='index')
-    dfs.append(df)
 
+    if(DEBUG_LEVEL>1):
+        print(df)
 
-    combined_df = pd.concat(dfs, ignore_index=True)
 
     newData=[]
     for i in range(len(df)):
-        y = json.loads(combined_df[0][i])
+        y = json.loads(df.iloc[i, 0])
         newData.append(y)
 
     if(len(newData)<3):
@@ -137,13 +125,16 @@ def find_pred(result):
 
 
     features = pd.DataFrame(columns=finalDf.columns)
+    
+    model = LinearRegression()
 
     for column in finalDf:
         X_train, X_test, y_train, y_test = train_test_split(finalDf, finalDf[column], test_size=0.2)
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         features.loc[0, column] = prediction[0]
-        # print(column,":",prediction[0])
+        if(DEBUG_LEVEL>1):
+            print(column,":",prediction[0])
         
     return features
 
@@ -200,13 +191,13 @@ def search(query):
 
     for search_result in search_response.get('items', []):
         video_id = search_result['id']['videoId']
-        # video_title = search_result['snippet']['title']
         video_url = f'https://www.youtube.com/watch?v={video_id}'
 
-        #print(f'Video Ulr: {video_url}')
         url = video_url
 
     video = YouTube(url)
+    if(video.age_restricted):
+        return True, True
 
     video_duration_seconds = video.length
     video_duration_minutes = video_duration_seconds / 60
@@ -221,8 +212,8 @@ def search(query):
         audio_segment = sound[start_time:end_time]
 
         audio_segment.export(r"music/downloaded/musicaudio.mp3", format="mp3")
-        return True
-    return False
+        return True, False
+    return False, False
     
 def search_spotify(genres, tempo):
     SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
@@ -258,7 +249,7 @@ matcher = Matcher(nlp.vocab)
 patterns = [
     [{"LOWER": "hello"}],
     [{"LOWER": "hi"}],
-    [{"LOWER": "how"}, {"LOWER": "are"}, {"LOWER": "you"}],
+    [{"LOWER": "help"}, {"LOWER": "me"}, {"LOWER": "please"}],
     [{"LOWER": "find"},{"LOWER": "me"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
     [{"LOWER": "find"}, {"LOWER": "similiar"}, {"LOWER": "songs"}],
     [{"LOWER": "what"}, {"LOWER": "is"}],
@@ -273,7 +264,7 @@ responses = {
         [{"LOWER": "hi"}],
     ],
     "inquiries": [
-        [{"LOWER": "how"}, {"LOWER": "are"}, {"LOWER": "you"}],
+        [{"LOWER": "help"}, {"LOWER": "me"}, {"LOWER": "please"}],
     ],
 
 
@@ -283,19 +274,17 @@ responses = {
 
     ],
     "find_change_simple": [
-
-    [{"LOWER": "make"}, {"LOWER": "it"}, {"LOWER": {"REGEX": ".*"}}],
-
+        [{"LOWER": "make"}, {"LOWER": "it"}, {"LOWER": {"REGEX": ".*"}}],
     ],
  
     "predicitions": [
         [{"LOWER": "recos"}],
         [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"},{"LOWER": "for"},{"LOWER": "me"}],
-
+        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"}],
     ],
 
     "find_sim": [
-        [{"LOWER": "search"},{"LOWER": "for"},{"LOWER": "similiar"},{"LOWER": "songs"}],
+        [{"LOWER": "search"},{"LOWER": "for"},{"LOWER": "similar"},{"LOWER": "songs"}],
         [{"LOWER": "search"},{"LOWER": "for"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
         [{"LOWER": "find"},{"LOWER": "me"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
 
@@ -359,11 +348,19 @@ def general(user_input):
 
 def give_me_a_song(user_input):
     newString = ""
-    # target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
     if not [genre for genre in target_name if genre in user_input]:
-        newString = "song must be real"
+        newString = "genre must be real"
         return newString
     
+    genre_found = 0
+    for word in user_input.split():
+        if(word in target_name):
+            genre_found +=1
+
+    if genre_found>1:
+        newString = "choose one, make your mind up"
+        return newString
+
     if "pop" in user_input:
         newString =  "Pop?? feeling a bit to upbeat?"
     elif "blues" in user_input:
@@ -403,16 +400,24 @@ def chatbot_response(user_input, features1=None, userID=None):
     if matches:
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
-        # print(f"Matched category: {category}, Span: {doc[start:end].text}")
+        if(DEBUG_LEVEL>2):
+            print(f"Matched category: {category}, Span: {doc[start:end].text}")
+
         if category == "greetings":
             return "Hello! How can I assist you?",None,None,None,None
         elif category == "inquiries":
-           return "I'm just the world's best DJ. How can I assist you?",None,None,None,None      
+           strLabel ="hello: for greetings, increase the <insert feature here>: for changing a songs features,do you have recommendations or recos: for a nice recommendation, search for similar songs: for.. well its in the name, i like <insert blank>: i solemnly swear to search for this.., want something random, type give me a <insert_genre>: for a surprise"
+           return strLabel,None,None,None,None      
         elif category == "like":
             print("Loading....")  
-            # extracted_word = doc[1].text
+            if(DEBUG_LEVEL>2):
+                extracted_word = doc[1].text
             before, keyword,extracted_word = doc.text.partition(doc[1].text)
-            if(search(extracted_word)==True):
+            trueSearch, ageSearch = search(extracted_word)
+            if(trueSearch==True):
+                if(ageSearch):
+                    strLabel = "This is a family friendly product"
+                    return strLabel, None, None,None, None
                 features1 = extract_features(r"music/downloaded/musicaudio.mp3")
                 genre1 = xgb.predict(features1)
                 genreProb = xgb.predict_proba(features1)
@@ -446,8 +451,13 @@ def chatbot_response(user_input, features1=None, userID=None):
                     decreaseVar = input.index("decrease")
                 except ValueError:
                     pass
-                
-                # print(increaseVar,":",decreaseVar)
+
+                if(increaseVar > -1 and decreaseVar > -1):
+                    strLabel = "huh?? choose one not both"
+                    return strLabel, None,None,None,None   
+                                
+                if(DEBUG_LEVEL>2):
+                    print(increaseVar,":",decreaseVar)
                 if(increaseVar > decreaseVar):
                     if(words[increaseVar+2] == "tempo"):
                         features = 'tempo'
@@ -521,8 +531,6 @@ def chatbot_response(user_input, features1=None, userID=None):
                         value = -value/100
                         valid=True
 
-
-
                 if(valid):
                     new_features = features1
                     new_features[features]+= value
@@ -590,8 +598,9 @@ def chatbot_response(user_input, features1=None, userID=None):
             else:
                 sim = find_sim(features1)
                 songs=[]
-                #for key, value in sim.items():
-                    #print(key," :",round(value,2),"% similiar")
+                if(DEBUG_LEVEL>2):
+                    for key, value in sim.items():
+                        print(key," :",round(value,2),"% similiar")
 
                 label = label_encoder.inverse_transform(features1['label'])[0]
                 spotifySong = "Recommendation from Spotify: "+search_spotify(label,features1['tempo'])
@@ -605,6 +614,7 @@ def chatbot_response(user_input, features1=None, userID=None):
             info = give_me_a_song(extracted_word)
             return info,None,None,None,None
         elif category=="predicitions":
+            from firebase import firebase
             firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
             result = firebase.get('/users', userID)
             pred= find_pred(result)
@@ -638,12 +648,20 @@ def extract(name, filename):
 app = Flask("chatterbot")
 CORS(app) 
 
+ALLOWED_FILE_EXTENSIONS = {'mp3', 'wav', 'ogg'}
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['GET','POST'])
 def upload():
     try:
 
         data = request.files['music_file']
+
+        filetype = data.filename.rsplit('.',1)[1]
+
+        if not(filetype in ALLOWED_FILE_EXTENSIONS):
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
+
+
         if(data is None):
             return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
 
@@ -653,10 +671,11 @@ def upload():
         features = features.to_json(orient='records')
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high}), 200
     except Exception as e:
+        print(e)
         return jsonify({"status": "Server Error", "Orpheus": "Uh oh"}), 500
 
 
-@app.route('/chat', methods=['POST'])
+@app.route('/chat', methods=['GET','POST'])
 def chatbot():
     try:
         data = request.get_json()

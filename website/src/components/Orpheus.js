@@ -30,6 +30,8 @@ function Orpheus({ userID, endpoint }) {
   const [spotifySong, setSpotifySong] = useState("");
   const [messages, setMessages] = useState([
     "Orpheus: My name is DJ Orpheus The ONE AND ONLY. Upload a song to use my many features. You can look for new songs by using words like increase or decrese then the feature you want changed. You can also search up bands you like too!!!!",
+    "Orpheus: I may not be the smartest bot, but im sworn to help. Type sentences like increase the tempo or make it quicker, to change an uploaded songs features",
+    "Orpheus: if you get really stuck, type help me please for detailed breakdown of features",
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setisChecked] = useState(false);
@@ -159,10 +161,6 @@ function Orpheus({ userID, endpoint }) {
   const addMessage = (newMessage) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
-
-  // const handleUserInput = (event) => {
-  //   setUserInput(event.target.value);
-  // };
 
   async function handleSubmit(event) {
     const url = endpoint + "/chat";
