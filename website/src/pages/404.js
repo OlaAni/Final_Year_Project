@@ -5,7 +5,7 @@ import Head from "next/head";
 import styles from "@/styles/styles.module.css";
 
 import { NextUIProvider, Text } from "@nextui-org/react";
-export default function Logout() {
+export default function NotFound() {
   return (
     <NextUIProvider>
       <Nav />

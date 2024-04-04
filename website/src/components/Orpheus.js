@@ -22,7 +22,7 @@ import { color } from "framer-motion";
 import styles from "@/styles/styles.module.css";
 import useDownloader from "react-use-downloader";
 
-function Orpheus({ userID, endpoint }) {
+function Orpheus({ userID, endpoint, api_key }) {
   // const [userInput, setUserInput] = useState("");
   const [confidence, setConfidence] = useState([""]);
   const [features, setFeatures] = useState("");
@@ -56,7 +56,7 @@ function Orpheus({ userID, endpoint }) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }, [messages]);
     //messages allows for use effect to change dependent on it
-    console.log(isLoading);
+    // console.log(isLoading);
     return (
       <div className={styles.chatWindowStyle} ref={chatWindowRef}>
         {isLoading ? (
@@ -72,6 +72,10 @@ function Orpheus({ userID, endpoint }) {
         )}
       </div>
     );
+  };
+
+  const addMessage = (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
   const ConfidenceScores = ({ scores }) => {
@@ -158,9 +162,6 @@ function Orpheus({ userID, endpoint }) {
       return "default";
     }
   }
-  const addMessage = (newMessage) => {
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-  };
 
   async function handleSubmit(event) {
     const url = endpoint + "/chat";
@@ -173,6 +174,7 @@ function Orpheus({ userID, endpoint }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "api-key": api_key,
       },
       body: JSON.stringify({ user_input: userInput, userID: userID }),
     };
@@ -184,6 +186,8 @@ function Orpheus({ userID, endpoint }) {
         userID: userID,
       });
     }
+
+    console.log(options);
 
     try {
       const response = await fetch(url, options);
@@ -242,63 +246,69 @@ function Orpheus({ userID, endpoint }) {
   async function uploadFile(event) {
     const url = endpoint + "/upload";
     console.log(url);
+    try {
+      const file = event.target.files[0];
 
-    const file = event.target.files[0];
-
-    if (event.target.files[0].size > 1500000) {
-      // alert(event.target.files[0].size);
-      addMessage(
-        "Orpheus: I can only handle so much data, gonna need you to slim it down"
-      );
-    } else {
-      setIsLoading(true);
-
-      const formData = new FormData();
-
-      formData.append("user_input", "extract");
-      formData.append("music_file", file);
-
-      var options = {
-        method: "POST",
-        body: formData,
-      };
-      // await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      try {
-        const response = await fetch(url, options);
-        const result = await response.json();
-
-        if (result.status == "OK") {
-          addMessage("Orpheus: " + result.Orpheus);
-
-          if (result.confidence != null) {
-            setConfidence(result.confidence);
-          }
-
-          if (result.features != null) {
-            setFeatures(result.features);
-
-            console.log(result.features);
-            const dataRef = ref(database, "users/" + userID);
-
-            const newPushRef = push(dataRef);
-            set(newPushRef, result.features)
-              .then(() => {
-                console.log("Data pushed successfully!");
-              })
-              .catch((error) => {
-                console.error("Error pushing data:", error);
-              });
-          }
-        }
-        setIsLoading(false);
-      } catch (error) {
+      if (event.target.files[0].size > 1500000) {
+        // alert(event.target.files[0].size);
         addMessage(
-          "Orpheus: Make sure your file is wav or mp3 format, homie!! The problem couldn't be me"
+          "Orpheus: I can only handle so much data, gonna need you to slim it down"
         );
+      } else {
+        setIsLoading(true);
 
-        setIsLoading(false);
+        const formData = new FormData();
+
+        formData.append("user_input", "extract");
+        formData.append("music_file", file);
+
+        var options = {
+          method: "POST",
+          headers: {
+            "api-key": api_key,
+          },
+          body: formData,
+        };
+        // await new Promise((resolve) => setTimeout(resolve, 10000));
+
+        try {
+          const response = await fetch(url, options);
+          const result = await response.json();
+
+          if (result.status == "OK") {
+            addMessage("Orpheus: " + result.Orpheus);
+
+            if (result.confidence != null) {
+              setConfidence(result.confidence);
+            }
+
+            if (result.features != null) {
+              setFeatures(result.features);
+
+              console.log(result.features);
+              const dataRef = ref(database, "users/" + userID);
+
+              const newPushRef = push(dataRef);
+              set(newPushRef, result.features)
+                .then(() => {
+                  console.log("Data pushed successfully!");
+                })
+                .catch((error) => {
+                  console.error("Error pushing data:", error);
+                });
+            }
+          }
+          setIsLoading(false);
+        } catch (error) {
+          addMessage(
+            "Orpheus: Make sure your file is wav or mp3 format, homie!! The problem couldn't be me"
+          );
+
+          setIsLoading(false);
+        }
       }
+    } catch (error) {
+      addMessage("Orpheus: I think the issue may be you");
     }
   }
 

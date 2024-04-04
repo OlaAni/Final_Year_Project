@@ -27,6 +27,7 @@
     "react-dom": "18.2.0",
     "react-h5-audio-player": "^3.9.1",
     "react-iconly": "^2.2.6",
+    "react-spotify-embed": "^2.0.4",
     "react-use-downloader": "^1.2.5"
   },
   "devDependencies": {

@@ -50,6 +50,13 @@ function Nav() {
         >
           Profile
         </Link>
+        <Link
+          className={styles.linkStyle}
+          style={{ fontSize: "30px" }}
+          href="/about"
+        >
+          About
+        </Link>
         <div className={styles.logoutContainerStyle}>
           <Button
             className={styles.buttonStyle}
@@ -63,7 +70,34 @@ function Nav() {
     </>
   );
 }
-
+function NavNotLogged() {
+  return (
+    <>
+      <Head>
+        <link rel="shortcut icon" href="/Lyre.png" />
+      </Head>
+      <div className={styles.navbarStyle}>
+        <Link href="/" style={{ marginRight: "15px" }}>
+          <Image
+            width={188}
+            height={75}
+            src="/Lyre.png"
+            alt="Logo"
+            style={{ objectFit: "contain" }}
+          />
+        </Link>
+        <Link
+          className={styles.linkStyle}
+          style={{ fontSize: "30px" }}
+          href="/about"
+        >
+          About
+        </Link>
+      </div>
+    </>
+  );
+}
 module.exports = {
   Nav,
+  NavNotLogged,
 };

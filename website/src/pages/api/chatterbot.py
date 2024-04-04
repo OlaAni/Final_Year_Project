@@ -30,11 +30,17 @@ from pytube import YouTube
 from googleapiclient.discovery import build
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
+#import for libraries
 
 nlp = spacy.load("en_core_web_sm")
 # spacy.cli.download("en_core_web_sm")
 
 load_dotenv()
+FIREBASE_LINK = os.getenv('FIREBASE_LINK')
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+API_KEY = os.getenv('API_KEY')
 
 DEBUG_LEVEL = int(os.getenv('DEBUG_LEVEL'))
 print("DEBUG_LEVEL: "+str(DEBUG_LEVEL))
@@ -45,11 +51,13 @@ df = pd.read_csv(r'music_data/features_3_sec.csv')
 df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 label_encoder = LabelEncoder()
 df['label'] =  label_encoder.fit_transform(df['label'])
+#used to convert the labels back and foward
 
 target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
 
+#loads model into program and gets the names
 xgb = joblib.load('model.pkl')
-cols_when_model_builds = xgb.get_booster().feature_names
+cols_for_model = xgb.get_booster().feature_names
 
 
 
@@ -101,7 +109,7 @@ def find_pred(result):
         return None
     df = pd.DataFrame.from_dict(result, orient='index')
 
-    if(DEBUG_LEVEL>1):
+    if(DEBUG_LEVEL>5):
         print(df)
 
 
@@ -124,6 +132,7 @@ def find_pred(result):
     finalDf = finalDf.drop('filename', axis=1)
 
 
+
     features = pd.DataFrame(columns=finalDf.columns)
     
     model = LinearRegression()
@@ -133,8 +142,22 @@ def find_pred(result):
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         features.loc[0, column] = prediction[0]
-        if(DEBUG_LEVEL>1):
+        if(DEBUG_LEVEL>3):
             print(column,":",prediction[0])
+
+
+    counts = {i: 0 for i in range(0, 10)}
+    for label in finalDf["label"]:
+        if label in counts:
+            counts[label]+=1
+
+    features['label'] = max(counts)
+
+    if(DEBUG_LEVEL>1):
+        print(finalDf)
+        print(features['label'])
+
+
         
     return features
 
@@ -175,15 +198,14 @@ def extract_features(file):
                              'harmony_mean':[harmony.mean()],'harmony_var':[harmony.var()],'tempo':[tempo],})
     
 
-    features = features.reindex(columns=cols_when_model_builds)
+    features = features.reindex(columns=cols_for_model)
 
     return features
 
 #search youtube for a song
 def search(query):
-    api_key = os.getenv('YOUTUBE_API_KEY')
 
-    youtube = build('youtube', 'v3', developerKey=api_key)
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
     search_response = youtube.search().list(q=query,type='video',part='id,snippet',maxResults=1).execute()
 
@@ -216,9 +238,6 @@ def search(query):
     return False, False
     
 def search_spotify(genres, tempo):
-    SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
-    SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
-
     client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
     spotifySearcher = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
@@ -281,6 +300,8 @@ responses = {
         [{"LOWER": "recos"}],
         [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"},{"LOWER": "for"},{"LOWER": "me"}],
         [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"}],
+        [{"LOWER": "i"},{"LOWER": "want"},{"LOWER": "a"},{"LOWER": "song"}],
+        [{"LOWER": "a"},{"LOWER": "recommendation"}],
     ],
 
     "find_sim": [
@@ -299,7 +320,6 @@ responses = {
 
     "give_me": [
         [{"LOWER": "give"}, {"LOWER": "me"}, {"LOWER": "a"},  {"LOWER": {"REGEX": ".*"}}, {"LOWER": "song"},],
-
     ],
 
     "general": [
@@ -348,13 +368,13 @@ def general(user_input):
 
 def give_me_a_song(user_input):
     newString = ""
-    if not [genre for genre in target_name if genre in user_input]:
+    if not [genre for genre in target_name if genre in user_input] and (user_input=="rap"):
         newString = "genre must be real"
         return newString
     
     genre_found = 0
     for word in user_input.split():
-        if(word in target_name):
+        if(word in target_name) or word =="rap":
             genre_found +=1
 
     if genre_found>1:
@@ -369,7 +389,7 @@ def give_me_a_song(user_input):
         newString =  "Country?? YE YE Heres a howdy song for you"
     elif "rock" in user_input:
         newString =  "Rock?? Rock on sibling"
-    elif "hiphop" in user_input:
+    elif "hiphop" in user_input or "rap" in user_input:
         newString =  "Hiphop?? let me put you on some bangers?"
     elif "jazz" in user_input:
         newString =  "Jazz?? Giant steps best jazz song, this probs not jazz"
@@ -393,6 +413,7 @@ quiet_words = ["softer","quieter"]
 darker_words = ["happier", "brighter"]
 brighter_words = ["darker", "sadder"]
 
+#how the chat responds to the user
 def chatbot_response(user_input, features1=None, userID=None):
     user_input = user_input.lower()
     doc = nlp(user_input)
@@ -406,7 +427,7 @@ def chatbot_response(user_input, features1=None, userID=None):
         if category == "greetings":
             return "Hello! How can I assist you?",None,None,None,None
         elif category == "inquiries":
-           strLabel ="hello: for greetings, increase the <insert feature here>: for changing a songs features,do you have recommendations or recos: for a nice recommendation, search for similar songs: for.. well its in the name, i like <insert blank>: i solemnly swear to search for this.., want something random, type give me a <insert_genre>: for a surprise"
+           strLabel ="hello: for greetings, increase the <insert feature here>: for changing a songs features,do you have recommendations or recos: for a nice recommendation, search for similar songs: for.. well its in the name, i like <insert blank>: i solemnly swear to search for this.., want something random, type give me a <insert_genre>: for a surprise, also be sure to double check when you want to leave me, i will not be saving our previous texts"
            return strLabel,None,None,None,None      
         elif category == "like":
             print("Loading....")  
@@ -615,15 +636,18 @@ def chatbot_response(user_input, features1=None, userID=None):
             return info,None,None,None,None
         elif category=="predicitions":
             from firebase import firebase
-            firebase = firebase.FirebaseApplication('https://orpheus-3a4fa-default-rtdb.europe-west1.firebasedatabase.app/', None)
+            firebase = firebase.FirebaseApplication(FIREBASE_LINK, None)
             result = firebase.get('/users', userID)
             pred= find_pred(result)
 
             if pred is None:
                 return "Upload some more songs", None,None, None,None
             sim = find_sim(pred)
-            # songs=[]   
-            return "I have some songs that i think you might like", sim,pred, None,None          
+
+            label = label_encoder.inverse_transform(pred['label'])[0]
+            spotifySong = "Recommendation from Spotify: "+search_spotify(label,pred['tempo'])
+            
+            return "I have some songs that i think you might like", sim,pred, spotifySong,None          
     else:
         return "I'm sorry, I don't understand that, maybe type it a bit more clearer??.",None,None,None,None
 
@@ -646,15 +670,25 @@ def extract(name, filename):
 
 
 app = Flask("chatterbot")
-CORS(app) 
+CORS(app)
 
 ALLOWED_FILE_EXTENSIONS = {'mp3', 'wav', 'ogg'}
 
+        
+    
 @app.route('/upload', methods=['GET','POST'])
 def upload():
+    api_key = request.headers.get("api-key", type=str)
+
+    if(API_KEY != api_key):
+        return jsonify({"status":"NO AUTH", "Orpheus":"Try better"}), 401
+    
     try:
 
         data = request.files['music_file']
+
+        if(DEBUG_LEVEL>1):
+            print(data.content_type)
 
         filetype = data.filename.rsplit('.',1)[1]
 
@@ -677,6 +711,11 @@ def upload():
 
 @app.route('/chat', methods=['GET','POST'])
 def chatbot():
+    api_key = request.headers.get("api-key", type=str)
+
+    if(API_KEY != api_key):
+        return jsonify({"status":"NO AUTH", "Orpheus":"Try better"}), 401
+    
     try:
         data = request.get_json()
         if(data.get('features')!=None):

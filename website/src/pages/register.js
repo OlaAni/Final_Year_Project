@@ -16,6 +16,7 @@ import {
   Grid,
   Image,
 } from "@nextui-org/react";
+const { NavNotLogged } = require("@/components/Nav");
 
 export default function Register() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function Register() {
         <title>Register</title>
         <link rel="shortcut icon" href="/Lyre.png" />
       </Head>
+      <NavNotLogged />
       <Spacer y={2} />
       <Row gap={1}>
         <Card css={{ $$cardColor: "#daa520", mw: "600px", margin: "auto" }}>
