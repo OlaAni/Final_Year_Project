@@ -1,21 +1,15 @@
-from sklearn.model_selection import train_test_split, cross_val_predict
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 import librosa
-import numpy as np
-import warnings
-warnings.filterwarnings('ignore')
 from pytube import YouTube
 from pydub import AudioSegment
-import youtube_dl
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
-import xgboost
 import joblib
 import random
-import re
 import spacy
 from spacy.matcher import Matcher
 from dotenv import load_dotenv
@@ -30,6 +24,9 @@ from pytube import YouTube
 from googleapiclient.discovery import build
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
+import time
+import warnings
+warnings.filterwarnings('ignore')
 #import for libraries
 
 nlp = spacy.load("en_core_web_sm")
@@ -41,17 +38,14 @@ YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 API_KEY = os.getenv('API_KEY')
-
 DEBUG_LEVEL = int(os.getenv('DEBUG_LEVEL'))
+
 print("DEBUG_LEVEL: "+str(DEBUG_LEVEL))
 
-
-#model
-df = pd.read_csv(r'music_data/features_3_sec.csv')
-df = df[['chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
+#used to convert the labels back and foward
+df = pd.read_csv(r'music_data/features_3_sec.csv' ,usecols=['label'])
 label_encoder = LabelEncoder()
 df['label'] =  label_encoder.fit_transform(df['label'])
-#used to convert the labels back and foward
 
 target_name = ['blues', 'classical', 'country', 'disco', 'hiphop' ,'jazz' ,'metal', 'pop','reggae' ,'rock']
 
@@ -78,25 +72,22 @@ def find_sim(data):
 
 
     combined_df = pd.concat([df_sim, data], ignore_index=True)
-
     combined_df = combined_df.set_index('filename')
 
     similarity = cosine_similarity(preprocessing.scale(combined_df))
 
     sim_df_names = pd.DataFrame(similarity, columns=combined_df.index, index=combined_df.index)
-
     series = sim_df_names[placeHoldername].sort_values(ascending=False)
     series = series.drop(placeHoldername)
 
     series = series.head(3).to_dict()
-
 
     k = Counter(series)
     
     # Finding 3 highest values
     series = k.most_common(3) 
 
-    if(DEBUG_LEVEL>2):
+    if(DEBUG_LEVEL>5):
         for i in series:
             print(i[0]," :",i[1]," ")
 
@@ -142,7 +133,7 @@ def find_pred(result):
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         features.loc[0, column] = prediction[0]
-        if(DEBUG_LEVEL>3):
+        if(DEBUG_LEVEL>5):
             print(column,":",prediction[0])
 
 
@@ -153,7 +144,7 @@ def find_pred(result):
 
     features['label'] = max(counts)
 
-    if(DEBUG_LEVEL>1):
+    if(DEBUG_LEVEL>5):
         print(finalDf)
         print(features['label'])
 
@@ -181,6 +172,8 @@ def confidence_score(proba):
 
 #extract mfeatures from a song
 def extract_features(file):
+    before = time.time()
+
     y, sr = librosa.load(file,  duration=30)
 
     chroma_sft = librosa.feature.chroma_stft(y=y, sr=sr)
@@ -197,8 +190,13 @@ def extract_features(file):
                              'rolloff_mean':[rolloff.mean()],'rolloff_var':[rolloff.var()],'zero_crossing_rate_mean':[zero_crossing_rate.mean()],'zero_crossing_rate_var':[zero_crossing_rate.var()],
                              'harmony_mean':[harmony.mean()],'harmony_var':[harmony.var()],'tempo':[tempo],})
     
+    after = time.time()
 
     features = features.reindex(columns=cols_for_model)
+    if(DEBUG_LEVEL>6):
+        print(features)
+    if(DEBUG_LEVEL>1):
+        print("TimeToExtract: ", after-before)
 
     return features
 
@@ -421,8 +419,8 @@ def chatbot_response(user_input, features1=None, userID=None):
     if matches:
         match_id, start,end = matches[0]
         category = nlp.vocab.strings[match_id]
-        if(DEBUG_LEVEL>2):
-            print(f"Matched category: {category}, Span: {doc[start:end].text}")
+        if(DEBUG_LEVEL>5):
+            print(f"Matched category: {category}")
 
         if category == "greetings":
             return "Hello! How can I assist you?",None,None,None,None
@@ -430,8 +428,7 @@ def chatbot_response(user_input, features1=None, userID=None):
            strLabel ="hello: for greetings, increase the <insert feature here>: for changing a songs features,do you have recommendations or recos: for a nice recommendation, search for similar songs: for.. well its in the name, i like <insert blank>: i solemnly swear to search for this.., want something random, type give me a <insert_genre>: for a surprise, also be sure to double check when you want to leave me, i will not be saving our previous texts"
            return strLabel,None,None,None,None      
         elif category == "like":
-            print("Loading....")  
-            if(DEBUG_LEVEL>2):
+            if(DEBUG_LEVEL>5):
                 extracted_word = doc[1].text
             before, keyword,extracted_word = doc.text.partition(doc[1].text)
             trueSearch, ageSearch = search(extracted_word)
@@ -439,16 +436,18 @@ def chatbot_response(user_input, features1=None, userID=None):
                 if(ageSearch):
                     strLabel = "This is a family friendly product"
                     return strLabel, None, None,None, None
-                features1 = extract_features(r"music/downloaded/musicaudio.mp3")
-                genre1 = xgb.predict(features1)
-                genreProb = xgb.predict_proba(features1)
-                features1['filename'] = str(extracted_word)
-                features1['label'] = genre1[0]
-                label = label_encoder.inverse_transform(features1['label'])[0]
+                
+                liked_features = extract_features(r"music/downloaded/musicaudio.mp3")
+                genre1 = xgb.predict(liked_features)
+                genreProb = xgb.predict_proba(liked_features)
+                liked_features['filename'] = str(extracted_word)
+                liked_features['label'] = genre1[0]
+                label = label_encoder.inverse_transform(liked_features['label'])[0]
                 high = confidence_score(genreProb)
 
                 strLabel = "You " +keyword +" "+ str(extracted_word) + ". Based off the first 30 seconds of a song, it seems to be " +label+". Im saying that with "+ str(high[0][1])+"% confidence"
-                return strLabel, None, features1,None, high
+                
+                return strLabel, None, liked_features,None, high
             else:
                 strLabel = "Way to much content for me to process, narrow your keywords please"
                 return strLabel, None, None,None, None
@@ -477,8 +476,9 @@ def chatbot_response(user_input, features1=None, userID=None):
                     strLabel = "huh?? choose one not both"
                     return strLabel, None,None,None,None   
                                 
-                if(DEBUG_LEVEL>2):
+                if(DEBUG_LEVEL>4):
                     print(increaseVar,":",decreaseVar)
+        
                 if(increaseVar > decreaseVar):
                     if(words[increaseVar+2] == "tempo"):
                         features = 'tempo'
@@ -619,7 +619,7 @@ def chatbot_response(user_input, features1=None, userID=None):
             else:
                 sim = find_sim(features1)
                 songs=[]
-                if(DEBUG_LEVEL>2):
+                if(DEBUG_LEVEL>4):
                     for key, value in sim.items():
                         print(key," :",round(value,2),"% similiar")
 
