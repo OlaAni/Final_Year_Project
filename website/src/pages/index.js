@@ -24,7 +24,6 @@ export async function getServerSideProps({ req, res }) {
     cookieName: process.env.COOKIE_NAME,
     password: process.env.SESSION_PASSWORD,
   });
-  console.log(process.env.API_KEY);
 
   if (session.userID == undefined) {
     return {

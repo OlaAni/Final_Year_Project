@@ -1,13 +1,14 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-import pandas as pd
-import librosa
-from pytube import YouTube
-from pydub import AudioSegment
-import os
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LinearRegression
+import pandas as pd
+import librosa
+from pytube import YouTube
+from pydub import AudioSegment 
+import os
 import joblib
 import random
 import spacy
@@ -15,12 +16,8 @@ from spacy.matcher import Matcher
 from dotenv import load_dotenv
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 import json
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from pytube import YouTube
 from googleapiclient.discovery import build
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
@@ -144,6 +141,8 @@ def find_pred(result):
 
     features['label'] = max(counts)
 
+
+
     if(DEBUG_LEVEL>5):
         print(finalDf)
         print(features['label'])
@@ -222,16 +221,17 @@ def search(query):
     video_duration_seconds = video.length
     video_duration_minutes = video_duration_seconds / 60
 
-    if video_duration_minutes < 6:
+    if video_duration_minutes < 6 and video_duration_minutes> 1:
         stream = video.streams.filter(only_audio=True).first()
         stream.download(filename=f"musicaudio.mp3")
         sound = AudioSegment.from_file(r"musicaudio.mp3")
-        start_time = 0  
-        end_time = 30 * 1000
+
+        start_time = (len(sound) // 2) + 15 * 1000  
+        end_time = start_time + 30 * 1000  
 
         audio_segment = sound[start_time:end_time]
 
-        audio_segment.export(r"music/downloaded/musicaudio.mp3", format="mp3")
+        audio_segment.export(r"musicaudio.mp3", format="mp3")
         return True, False
     return False, False
     
@@ -253,8 +253,13 @@ def search_spotify(genres, tempo):
         song = recommendations['tracks'][0]
         song_name = song['name']
         artist_name = song['artists'][0]['name']
+        song_link = song['external_urls']['spotify']
 
-        return f'Song: {song_name} by {artist_name}'
+        if(DEBUG_LEVEL>1):
+            print(song_link)
+            print(song)
+
+        return f'Song: {song_name} by {artist_name}: LINK TO SONG -  {song_link}'
     else:
         return 'No recommendations found from spotify.'
 
@@ -437,7 +442,7 @@ def chatbot_response(user_input, features1=None, userID=None):
                     strLabel = "This is a family friendly product"
                     return strLabel, None, None,None, None
                 
-                liked_features = extract_features(r"music/downloaded/musicaudio.mp3")
+                liked_features = extract_features(r"musicaudio.mp3")
                 genre1 = xgb.predict(liked_features)
                 genreProb = xgb.predict_proba(liked_features)
                 liked_features['filename'] = str(extracted_word)
@@ -644,15 +649,33 @@ def chatbot_response(user_input, features1=None, userID=None):
                 return "Upload some more songs", None,None, None,None
             sim = find_sim(pred)
 
+
+            pred_df = pred.drop('label', axis=1)
+            pred_df = pred_df.drop('filename', axis=1)
+
+            pred_df = pred_df.apply(pd.to_numeric)
+
+            print(pred_df.info())
+
+
+            genreProb = xgb.predict_proba(pred_df)
+            high = confidence_score(genreProb)
+
+            if(DEBUG_LEVEL>3):
+                print(pred_df)
+                print(high)
+
+            pred["filename"] = "Prediction"
             label = label_encoder.inverse_transform(pred['label'])[0]
-            spotifySong = "Recommendation from Spotify: "+search_spotify(label,pred['tempo'])
-            
-            return "I have some songs that i think you might like", sim,pred, spotifySong,None          
+            spotifySong = search_spotify(label,pred['tempo'])
+
+            strLabel = "I have some songs that i think you might like, I have a confidence of "+str(high[0][1])+"% that "+ high[0][0]+ " will be your most liked genre"
+            return strLabel, sim,pred, spotifySong,high          
     else:
         return "I'm sorry, I don't understand that, maybe type it a bit more clearer??.",None,None,None,None
 
 
-def extract(name, filename):
+def getGenre(name, filename):
     features1 = extract_features(name)
 
     genre1 = xgb.predict(features1)
@@ -701,7 +724,7 @@ def upload():
 
         name = "downloadedTest.mp3"
         data.save(name)
-        features, response,high = extract(name, data.filename)
+        features, response,high = getGenre(name, data.filename)
         features = features.to_json(orient='records')
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high}), 200
     except Exception as e:

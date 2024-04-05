@@ -24,7 +24,7 @@ import useDownloader from "react-use-downloader";
 
 function Orpheus({ userID, endpoint, api_key }) {
   // const [userInput, setUserInput] = useState("");
-  const [confidence, setConfidence] = useState([""]);
+  const [confidence, setConfidence] = useState([]);
   const [features, setFeatures] = useState("");
   const [songs, setSongs] = useState([]);
   const [spotifySong, setSpotifySong] = useState("");
@@ -85,7 +85,7 @@ function Orpheus({ userID, endpoint, api_key }) {
           <div>Loading...</div>
         ) : (
           scores.map((score, index) => (
-            <div key={index}>
+            <div className={styles.centeredReco} key={index}>
               {score[0]} : {score[1]}%
             </div>
           ))
@@ -96,7 +96,6 @@ function Orpheus({ userID, endpoint, api_key }) {
 
   const RecoSongs = ({ songs }) => {
     const [recos, setRecos] = useState([]);
-    // setIsLoading(true);
 
     useEffect(() => {
       const fetchData = async () => {
@@ -117,7 +116,7 @@ function Orpheus({ userID, endpoint, api_key }) {
 
       fetchData();
     }, [songs]);
-    // setIsLoading(false);
+
     return recos.map((newEntry, index) => {
       if (recos.length < 1) {
         return <div>Nothing here at the moment</div>;
@@ -148,14 +147,14 @@ function Orpheus({ userID, endpoint, api_key }) {
     });
   };
   async function getDownloadLink(song) {
-    console.log(song);
+    // console.log(song);
     var folder = song[0].match(/([a-zA-Z]+)/);
     var filename = folder[0] + "/" + song[0];
     // console.log(filename);
 
     try {
       const url = await getDownloadURL(refStorage(storage, filename));
-      console.log(filename + ":" + url);
+      // console.log(filename + ":" + url);
       return url;
     } catch (error) {
       console.error("Error fetching download link:", error);
@@ -187,12 +186,12 @@ function Orpheus({ userID, endpoint, api_key }) {
       });
     }
 
-    console.log(options);
-
     try {
       const response = await fetch(url, options);
       const result = await response.json();
       if (result.status == "OK") {
+        console.log(result.recommendation);
+
         if (result.Orpheus.includes("give_me_a_song")) {
           const match = result.Orpheus.match(/(\w+)\?/);
           result.Orpheus = result.Orpheus.replace("give_me_a_song", "");
@@ -227,7 +226,24 @@ function Orpheus({ userID, endpoint, api_key }) {
         }
 
         if (result.recommendation != null) {
-          setSpotifySong(result.recommendation);
+          console.log(!(result.recommendation[0] == "N"));
+          if (!(result.recommendation[0] == "N")) {
+            const regex_reco = /LINK TO SONG - (.+)/;
+            const match = result.recommendation.match(regex_reco);
+            const capturedText = match ? match[1] : null;
+
+            const parts = result.recommendation.split(regex_reco);
+
+            const displayLink = parts[0];
+
+            setSpotifySong(
+              <a href={capturedText} target="_blank">
+                {displayLink}
+              </a>
+            );
+          } else {
+            setSpotifySong(result.recommendation);
+          }
         }
       } else {
         alert("Status: " + result.status);
@@ -245,7 +261,6 @@ function Orpheus({ userID, endpoint, api_key }) {
 
   async function uploadFile(event) {
     const url = endpoint + "/upload";
-    console.log(url);
     try {
       const file = event.target.files[0];
 
@@ -320,7 +335,10 @@ function Orpheus({ userID, endpoint, api_key }) {
     roundFeatures = JSON.parse(jsonData)[0];
   } else {
     var features1 = JSON.parse(features)[0];
+    console.log(features1);
+
     features1["label"] = confidence[0][0];
+
     for (const key in features1) {
       if (key !== "label" && key !== "filename") {
         if (key == "Harmony" || key == "harmony_mean") {
@@ -452,39 +470,10 @@ function Orpheus({ userID, endpoint, api_key }) {
               ))}
             </tbody>
           </table>
-          {/* <BarChart
-            xAxis={[
-              {
-                id: "barCategories",
-                data: [
-                  "chroma_stft_mean",
-                  "harmony_mean",
-                  "rms_mean",
-                  "rolloff_mean",
-                  "spectral_bandwidth_mean",
-                  "spectral_centroid_mean",
-                  "tempo",
-                  "zero_crossing_rate_mean",
-                ],
-                scaleType: "band",
-              },
-            ]}
-            series={[
-              {
-                data: [
-                  5.068385e-7, 6.550427e-12, 1.924138e-7, 0.004374, 0.002327,
-                  0.002142, 0.000112, 9.746657e-8,
-                ],
-              },
-            ]}
-            width={500}
-            height={300}
-          /> */}
         </Grid>
         <Grid xs={6} direction="column" className={styles.columnStyle}>
           <ChatWindow messages={messages} />
           <Spacer y={3} />
-
           <Input type="text" id="user_input" className={styles.inputStyle} />
           <Button color="warning" onPress={handleSubmit}>
             Chat
@@ -494,7 +483,7 @@ function Orpheus({ userID, endpoint, api_key }) {
           <Text className={styles.sectionTitleStyle}>
             {roundFeatures["filename"]}
           </Text>
-          <div className={styles.centeredReco}>
+          <div className={styles.centeredFile}>
             <input
               type="file"
               onChange={uploadFile}
@@ -516,7 +505,9 @@ function Orpheus({ userID, endpoint, api_key }) {
 
           <Spacer y={3} />
           <Text className={styles.sectionTitleStyle}>Spotify</Text>
-          <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
+          <div className={styles.centeredReco}>
+            <Text style={{ overflowWrap: "break-word" }}>{spotifySong}</Text>
+          </div>
         </Grid>
       </Grid.Container>
     </NextUIProvider>
