@@ -62,11 +62,9 @@ def find_sim(data):
 
     df_sim = df_sim[['filename','chroma_stft_mean','chroma_stft_var','rms_mean','rms_var','spectral_centroid_mean','spectral_centroid_var','spectral_bandwidth_mean','spectral_bandwidth_var','rolloff_mean','rolloff_var','zero_crossing_rate_mean','zero_crossing_rate_var','harmony_mean','harmony_var','tempo','label']]
 
-
     label_encoder = LabelEncoder()
     df_sim['label'] = df_sim['label'].astype("string")
     df_sim['label'] =  label_encoder.fit_transform(df_sim['label'])
-
 
     combined_df = pd.concat([df_sim, data], ignore_index=True)
     combined_df = combined_df.set_index('filename')
@@ -97,8 +95,6 @@ def find_pred(result):
         return None
     df = pd.DataFrame.from_dict(result, orient='index')
 
-    if(DEBUG_LEVEL>5):
-        print(df)
 
 
     newData=[]
@@ -130,7 +126,7 @@ def find_pred(result):
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         features.loc[0, column] = prediction[0]
-        if(DEBUG_LEVEL>5):
+        if(DEBUG_LEVEL>3):
             print(column,":",prediction[0])
 
 
@@ -146,8 +142,7 @@ def find_pred(result):
     if(DEBUG_LEVEL>5):
         print(finalDf)
         print(features['label'])
-
-
+        print(df)
         
     return features
 
@@ -223,15 +218,15 @@ def search(query):
 
     if video_duration_minutes < 6 and video_duration_minutes> 1:
         stream = video.streams.filter(only_audio=True).first()
-        stream.download(filename=f"musicaudio.mp3")
-        sound = AudioSegment.from_file(r"musicaudio.mp3")
+        stream.download(filename=f"searchedSong.mp3")
+        sound = AudioSegment.from_file(r"searchedSong.mp3")
 
         start_time = (len(sound) // 2) + 15 * 1000  
         end_time = start_time + 30 * 1000  
 
         audio_segment = sound[start_time:end_time]
 
-        audio_segment.export(r"musicaudio.mp3", format="mp3")
+        audio_segment.export(r"searchedSong.mp3", format="mp3")
         return True, False
     return False, False
     
@@ -255,7 +250,7 @@ def search_spotify(genres, tempo):
         artist_name = song['artists'][0]['name']
         song_link = song['external_urls']['spotify']
 
-        if(DEBUG_LEVEL>1):
+        if(DEBUG_LEVEL>2):
             print(song_link)
             print(song)
 
@@ -442,7 +437,7 @@ def chatbot_response(user_input, features1=None, userID=None):
                     strLabel = "This is a family friendly product"
                     return strLabel, None, None,None, None
                 
-                liked_features = extract_features(r"musicaudio.mp3")
+                liked_features = extract_features(r"searchedSong.mp3")
                 genre1 = xgb.predict(liked_features)
                 genreProb = xgb.predict_proba(liked_features)
                 liked_features['filename'] = str(extracted_word)
@@ -716,13 +711,13 @@ def upload():
         filetype = data.filename.rsplit('.',1)[1]
 
         if not(filetype in ALLOWED_FILE_EXTENSIONS):
-            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"Has to be an audio file, choose from ogg, wav and mp3"}), 400
 
 
         if(data is None):
-            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"NO DATA"}), 400
 
-        name = "downloadedTest.mp3"
+        name = "uploadedSong.mp3"
         data.save(name)
         features, response,high = getGenre(name, data.filename)
         features = features.to_json(orient='records')
@@ -751,7 +746,7 @@ def chatbot():
         userID = data.get('userID')
 
         if(user_input is None or userID is None):
-            return jsonify({"status":"BAD REQUEST", "Orpheus":"Try better"}), 400
+            return jsonify({"status":"BAD REQUEST", "Orpheus":"include an input and id"}), 400
 
         response,songs,features,recommendation, high = chatbot_response(user_input, features1, userID=userID)
 

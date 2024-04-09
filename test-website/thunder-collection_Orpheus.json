@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "Orpheus",
-    "dateExported": "2024-03-19T07:39:17.713Z",
+    "dateExported": "2024-04-06T16:21:53.714Z",
     "version": "1.1",
     "folders": [],
     "requests": [
@@ -14,15 +14,29 @@
             "method": "GET",
             "sortNum": 10000,
             "created": "2024-03-15T20:55:24.407Z",
-            "modified": "2024-03-16T21:25:10.284Z",
-            "headers": [],
+            "modified": "2024-04-06T16:21:17.950Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"help me please\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
+                "raw": "{\n  \"user_input\":\"hi\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
-            "reqType": "get",
             "tests": []
         },
         {
@@ -34,8 +48,23 @@
             "method": "GET",
             "sortNum": 20000,
             "created": "2024-03-15T20:55:47.326Z",
-            "modified": "2024-03-16T17:57:49.587Z",
-            "headers": [],
+            "modified": "2024-04-06T16:14:33.220Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "formdata",
@@ -44,11 +73,10 @@
                 "files": [
                     {
                         "name": "music_file",
-                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\website\\src\\pages\\api\\musicaudio.mp3"
+                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\music\\library_music\\nutcracker.mp3"
                     }
                 ]
             },
-            "reqType": "post",
             "tests": []
         },
         {
@@ -60,8 +88,23 @@
             "method": "GET",
             "sortNum": 25000,
             "created": "2024-03-16T12:23:25.753Z",
-            "modified": "2024-03-16T17:57:48.892Z",
-            "headers": [],
+            "modified": "2024-04-05T21:58:35.166Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "formdata",
@@ -74,7 +117,6 @@
                     }
                 ]
             },
-            "reqType": "post",
             "tests": []
         },
         {
@@ -86,12 +128,27 @@
             "method": "GET",
             "sortNum": 30000,
             "created": "2024-03-16T10:50:48.625Z",
-            "modified": "2024-03-16T10:54:21.245Z",
-            "headers": [],
+            "modified": "2024-04-05T20:28:40.282Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"i like buffalo soldier\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
+                "raw": "{\n  \"user_input\":\"i like kendrick lamar\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
             "tests": []
@@ -105,8 +162,23 @@
             "method": "GET",
             "sortNum": 40000,
             "created": "2024-03-16T10:59:24.682Z",
-            "modified": "2024-03-16T10:59:48.695Z",
-            "headers": [],
+            "modified": "2024-04-04T11:43:29.925Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "json",
@@ -124,15 +196,29 @@
             "method": "GET",
             "sortNum": 50000,
             "created": "2024-03-16T12:13:00.296Z",
-            "modified": "2024-03-17T13:51:12.456Z",
-            "headers": [],
+            "modified": "2024-04-04T11:43:34.551Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "json",
                 "raw": "{\n  \"user_input\":\"increase the tempo\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
                 "form": []
             },
-            "reqType": "get",
             "tests": []
         },
         {
@@ -144,12 +230,27 @@
             "method": "GET",
             "sortNum": 60000,
             "created": "2024-03-16T12:16:49.579Z",
-            "modified": "2024-03-16T12:20:03.284Z",
-            "headers": [],
+            "modified": "2024-04-04T09:57:02.465Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"give me a pop song\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
+                "raw": "{\n  \"user_input\":\"give me a rap song\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
             "tests": []

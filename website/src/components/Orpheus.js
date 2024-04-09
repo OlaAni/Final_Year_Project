@@ -1,14 +1,10 @@
-import { getIronSession } from "iron-session";
 import { useState, useRef, useEffect } from "react";
 import { ref, push, set } from "firebase/database";
 import { ref as refStorage, getDownloadURL, listAll } from "firebase/storage";
 import * as React from "react";
-
-const { app, database, storage } = require("@/components/firebase");
-import { BarChart } from "@mui/x-charts/BarChart";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
-import { Input, NextUIProvider, yellow } from "@nextui-org/react";
+import { Input, NextUIProvider } from "@nextui-org/react";
 import {
   Button,
   Link,
@@ -18,12 +14,11 @@ import {
   Switch,
   Popover,
 } from "@nextui-org/react";
-import { color } from "framer-motion";
 import styles from "@/styles/styles.module.css";
 import useDownloader from "react-use-downloader";
-
+const { database, storage } = require("@/components/firebase");
+//imports for lirbraries used
 function Orpheus({ userID, endpoint, api_key }) {
-  // const [userInput, setUserInput] = useState("");
   const [confidence, setConfidence] = useState([]);
   const [features, setFeatures] = useState("");
   const [songs, setSongs] = useState([]);
@@ -45,10 +40,9 @@ function Orpheus({ userID, endpoint, api_key }) {
       Authorization: "Bearer TOKEN",
     },
   });
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max + 10);
-  }
 
+  //controls chat window, scrolls to the bottom of window with each new image
+  //each new image is added to the array
   const ChatWindow = ({ messages }) => {
     const chatWindowRef = useRef();
 
@@ -74,10 +68,12 @@ function Orpheus({ userID, endpoint, api_key }) {
     );
   };
 
+  //called when chatbot or user adds in a new message
   const addMessage = (newMessage) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
+  //displays the name and confidence scores of uploaded music
   const ConfidenceScores = ({ scores }) => {
     return (
       <div>
@@ -94,6 +90,7 @@ function Orpheus({ userID, endpoint, api_key }) {
     );
   };
 
+  //displays recommended songs from api
   const RecoSongs = ({ songs }) => {
     const [recos, setRecos] = useState([]);
 
@@ -146,6 +143,8 @@ function Orpheus({ userID, endpoint, api_key }) {
       }
     });
   };
+
+  //returns the download link from firebase
   async function getDownloadLink(song) {
     // console.log(song);
     var folder = song[0].match(/([a-zA-Z]+)/);
@@ -162,6 +161,11 @@ function Orpheus({ userID, endpoint, api_key }) {
     }
   }
 
+  //returns random Int for song randomiser
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max + 10);
+  }
+  //handles the reponse from the chatbot, called when the user submits text
   async function handleSubmit(event) {
     const url = endpoint + "/chat";
     const userInput = document.querySelector("#user_input").value;
@@ -193,11 +197,11 @@ function Orpheus({ userID, endpoint, api_key }) {
         console.log(result.recommendation);
 
         if (result.Orpheus.includes("give_me_a_song")) {
-          const match = result.Orpheus.match(/(\w+)\?/);
+          const give_match = result.Orpheus.match(/(\w+)\?/);
           result.Orpheus = result.Orpheus.replace("give_me_a_song", "");
 
           var num = getRandomInt(89);
-          var song = [match[1].toLowerCase() + ".000" + num + ".wav", 1];
+          var song = [give_match[1].toLowerCase() + ".000" + num + ".wav", 1];
           var newLink = await getDownloadLink(song);
           addMessage(
             <span>
@@ -274,7 +278,6 @@ function Orpheus({ userID, endpoint, api_key }) {
 
         const formData = new FormData();
 
-        formData.append("user_input", "extract");
         formData.append("music_file", file);
 
         var options = {
@@ -329,6 +332,7 @@ function Orpheus({ userID, endpoint, api_key }) {
 
   // const jsonData =
   //   '[{"chroma_stft_mean":0.2914259732,"chroma_stft_var":0.0939848498,"harmony_mean":-0.0000117495,"harmony_var":0.0169314761,"rms_mean":0.1417519599,"rms_var":0.0087820757,"rolloff_mean":2795.910729499,"rolloff_var":1621507.8096568789,"spectral_bandwidth_mean":1389.0684455566,"spectral_bandwidth_var":185156.3212288567,"spectral_centroid_mean":1459.4696908115,"spectral_centroid_var":438024.9988025444,"tempo":123.046875,"zero_crossing_rate_mean":0.0730522374,"zero_crossing_rate_var":0.0019091707,"label":0}]';
+
   var roundFeatures = {};
   const jsonData = '[{"Example":"Characteristics"}]';
   if (!Object.keys(features).length) {
@@ -439,9 +443,6 @@ function Orpheus({ userID, endpoint, api_key }) {
           <Text className={styles.sectionTitleStyle}>
             {isChecked ? "Standard" : "Scientific"}
           </Text>
-          {/* <Text className={styles.sectionTitleStyle}>
-            {isLoading ? "true" : "false"}
-          </Text> */}
           <Text className={styles.sectionTitleStyle}>Features</Text>
           <table>
             <thead>
