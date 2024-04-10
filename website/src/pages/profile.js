@@ -12,6 +12,7 @@ import {
   Spacer,
   Text,
   Switch,
+  Popover,
 } from "@nextui-org/react";
 
 const { Nav } = require("@/components/Nav");
@@ -20,7 +21,7 @@ import styles from "@/styles/styles.module.css";
 
 export default function Profile({ userID, songsData, headers }) {
   const [tableData, setTableData] = useState(songsData);
-  const [isChecked, setisChecked] = useState(false);
+  const [isChecked, setisChecked] = useState(true);
 
   const removeSong = (userId, id) => {
     console.log(userId + " : " + id);
@@ -51,6 +52,29 @@ export default function Profile({ userID, songsData, headers }) {
       else if (key == "label") return "Genre";
     } else {
       return key;
+    }
+  }
+
+  function displayMeaning(key) {
+    if (key == "Pitch" || key == "chroma_stft_mean")
+      return "High values usually denote metal or hiphop, low values denote classical or jazz";
+    else if (key == "Harmony" || key == "harmony_mean")
+      return "High values usually denote hiphop and pop, low values metal and rock";
+    else if (key == "Loudness" || key == "rms_mean")
+      return "High values usually denote hiphop and pop, low values reggae and jazz";
+    else if (key == "Energy" || key == "rolloff_mean")
+      return "High values usually denot pop, low values blues and classical";
+    else if (key == "Sporadicity" || key == "spectral_bandwidth_mean")
+      return "High values usually denote disco and pop, low values country and classical";
+    else if (key == "Brightness" || key == "spectral_centroid_mean")
+      return "High values usually denote disco and pop, low values classical and blues";
+    else if (key == "Tempo" || key == "tempo")
+      return "Songs dont tend to differ";
+    else if (key == "Beats" || key == "zero_crossing_rate_mean")
+      return "High values usually denote pop and jazz, low values jazz";
+    else if (key == "label" || key == "Genre") return "How right was I???";
+    else {
+      return "Upload some songs!!!";
     }
   }
 
@@ -118,7 +142,17 @@ export default function Profile({ userID, songsData, headers }) {
                       border: "2px solid #ddd",
                     }}
                   >
-                    {changeKey(header)}
+                    <Popover placement={"top"}>
+                      <Popover.Trigger>
+                        <Button auto bordered color="secondary">
+                          {changeKey(header)}
+                        </Button>
+                      </Popover.Trigger>
+                      <Popover.Content>
+                        <Text css={{ p: "$10" }}>{displayMeaning(header)}</Text>
+                      </Popover.Content>
+                    </Popover>
+                    {/* {changeKey(header)} */}
                   </th>
                 ))}
                 <th>Actions</th>
