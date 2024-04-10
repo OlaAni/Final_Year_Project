@@ -1,20 +1,20 @@
 {
     "client": "Thunder Client",
     "collectionName": "Orpheus",
-    "dateExported": "2024-04-06T16:21:53.714Z",
+    "dateExported": "2024-04-10T19:56:21.453Z",
     "version": "1.1",
     "folders": [],
     "requests": [
         {
-            "_id": "ec14f22b-7f52-42b5-853e-24fcf563a50d",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "d483bdb8-815c-4985-a62d-7edbb6b85fbc",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "Chat",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 10000,
-            "created": "2024-03-15T20:55:24.407Z",
-            "modified": "2024-04-06T16:21:17.950Z",
+            "created": "2024-04-09T09:04:31.290Z",
+            "modified": "2024-04-10T11:13:22.790Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -37,18 +37,37 @@
                 "raw": "{\n  \"user_input\":\"hi\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                },
+                {
+                    "type": "Content-Type",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "application/json"
+                },
+                {
+                    "type": "res-body",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "{\"Orpheus\":\"Hello! How can I assist you?\",\"confidence\":null,\"features\":null,\"recommendation\":null,\"songs\":null,\"status\":\"OK\"}"
+                }
+            ]
         },
         {
-            "_id": "7ed5bfaf-a848-46c2-bd53-afa6cb8a368b",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "68e7b3e0-8dbe-4752-a865-62289cb33ed5",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "Upload_Success",
             "url": "http://127.0.0.1:5000/upload",
             "method": "GET",
             "sortNum": 20000,
-            "created": "2024-03-15T20:55:47.326Z",
-            "modified": "2024-04-06T16:14:33.220Z",
+            "created": "2024-04-09T09:04:31.291Z",
+            "modified": "2024-04-10T11:11:06.498Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -73,22 +92,29 @@
                 "files": [
                     {
                         "name": "music_file",
-                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\music\\library_music\\nutcracker.mp3"
+                        "value": "c:\\Users\\User\\Desktop\\Final_Year_Project\\music\\library_music\\nutcracker.mp3"
                     }
                 ]
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
         },
         {
-            "_id": "33ff7e35-0a70-4ebe-9ce1-7e1ce8cf6868",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "179e32ee-702a-457a-8de7-ef84e6f41d61",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "Upload_Fail",
             "url": "http://127.0.0.1:5000/upload",
             "method": "GET",
             "sortNum": 25000,
-            "created": "2024-03-16T12:23:25.753Z",
-            "modified": "2024-04-05T21:58:35.166Z",
+            "created": "2024-04-09T09:04:31.297Z",
+            "modified": "2024-04-10T11:15:34.601Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -113,22 +139,35 @@
                 "files": [
                     {
                         "name": "music_file",
-                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\website\\src\\pages\\api\\requirements.txt"
+                        "value": "c:\\Users\\User\\Desktop\\Final_Year_Project\\website\\src\\pages\\api\\requirements.txt"
                     }
                 ]
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "400"
+                },
+                {
+                    "type": "res-body",
+                    "custom": "",
+                    "action": "contains",
+                    "value": "BAD REQUEST"
+                }
+            ]
         },
         {
-            "_id": "8095d7bc-72b8-49ff-a905-89a878b311b5",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "0f01c18d-9d6c-4b07-b30c-56e3177fa131",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "search",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 30000,
-            "created": "2024-03-16T10:50:48.625Z",
-            "modified": "2024-04-05T20:28:40.282Z",
+            "created": "2024-04-09T09:04:31.292Z",
+            "modified": "2024-04-10T11:11:36.326Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -151,18 +190,25 @@
                 "raw": "{\n  \"user_input\":\"i like kendrick lamar\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
         },
         {
-            "_id": "533c8f33-f4bc-4fc0-b548-11c089ae4761",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "0f60c5d1-3ed7-4f90-938a-bcf882d5752b",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "Recommendation",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 40000,
-            "created": "2024-03-16T10:59:24.682Z",
-            "modified": "2024-04-04T11:43:29.925Z",
+            "created": "2024-04-09T09:04:31.293Z",
+            "modified": "2024-04-10T11:10:19.177Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -185,18 +231,25 @@
                 "raw": "{\n  \"user_input\":\"recos\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
         },
         {
-            "_id": "7b363f4b-21d9-45f8-9b68-109070756b47",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "a1d6a166-d62e-404b-a5ea-508e38b1c2e2",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "find_change",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 50000,
-            "created": "2024-03-16T12:13:00.296Z",
-            "modified": "2024-04-04T11:43:34.551Z",
+            "created": "2024-04-09T09:04:31.294Z",
+            "modified": "2024-04-10T11:11:24.195Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -219,18 +272,66 @@
                 "raw": "{\n  \"user_input\":\"increase the tempo\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
                 "form": []
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
         },
         {
-            "_id": "8a6d9c2d-0b99-4f74-aec8-7b80f29299f2",
-            "colId": "5529cbdf-6b7d-4967-9b14-f9fabc9c33b2",
+            "_id": "3c516543-6e20-4383-a83c-345f535a6737",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "containerId": "",
+            "name": "find_change2",
+            "url": "http://127.0.0.1:5000/chat",
+            "method": "GET",
+            "sortNum": 55000,
+            "created": "2024-04-10T11:16:26.304Z",
+            "modified": "2024-04-10T11:16:42.903Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"user_input\":\"make it faster\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
+                "form": []
+            },
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
+        },
+        {
+            "_id": "596295bc-1ce4-4786-981b-7711addb6023",
+            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
             "containerId": "",
             "name": "give_me_a_song",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 60000,
-            "created": "2024-03-16T12:16:49.579Z",
-            "modified": "2024-04-04T09:57:02.465Z",
+            "created": "2024-04-09T09:04:31.296Z",
+            "modified": "2024-04-10T11:10:42.869Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -253,7 +354,14 @@
                 "raw": "{\n  \"user_input\":\"give me a rap song\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
-            "tests": []
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
         }
     ]
 }
