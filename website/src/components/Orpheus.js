@@ -47,7 +47,16 @@ function Orpheus({ userID, endpoint, api_key }) {
         ) : (
           <div className={styles.messageContainerStyle}>
             {messages.map((message, index) => (
-              <div key={index}  className={typeof message == "string" ? (message.substring(0,7) == "Orpheus" ? styles.messageStyle : styles.messageStyle2) : styles.messageStyle }>
+              <div
+                key={index}
+                className={
+                  typeof message == "string"
+                    ? message.substring(0, 7) == "Orpheus"
+                      ? styles.messageStyle
+                      : styles.messageStyle2
+                    : styles.messageStyle
+                }
+              >
                 {message}
               </div>
             ))}
@@ -480,12 +489,6 @@ function Orpheus({ userID, endpoint, api_key }) {
               className={styles.fileInputStyle}
             />
           </div>
-          <AudioPlayer
-            showJumpControls={false}
-            autoPlayAfterSrcChange={false}
-            src={"g"}
-            onPlay={(e) => console.log("onPlay")}
-          />
           <Spacer y={3} />
           <Text className={styles.sectionTitleStyle}>Confidence Breakdown</Text>
           <div className={styles.centeredContainer}>
