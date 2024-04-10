@@ -5,7 +5,7 @@ const { Orpheus } = require("@/components/Orpheus");
 const { Nav } = require("@/components/Nav");
 import Head from "next/head";
 
-export default function Home({ userID, endpoint }) {
+export default function Home({ userID, endpoint, api_key }) {
   return (
     <NextUIProvider>
       <Head>
@@ -14,8 +14,7 @@ export default function Home({ userID, endpoint }) {
 
       <Nav />
 
-      <Orpheus userID={userID} endpoint={endpoint} />
-      
+      <Orpheus userID={userID} endpoint={endpoint} api_key={api_key} />
     </NextUIProvider>
   );
 }
@@ -25,7 +24,6 @@ export async function getServerSideProps({ req, res }) {
     cookieName: process.env.COOKIE_NAME,
     password: process.env.SESSION_PASSWORD,
   });
-  console.log(process.env.API_ENDPOINT)
 
   if (session.userID == undefined) {
     return {
@@ -40,7 +38,8 @@ export async function getServerSideProps({ req, res }) {
     props: {
       email: session.email,
       userID: session.userID,
-      endpoint : process.env.API_ENDPOINT
+      endpoint: process.env.API_ENDPOINT,
+      api_key: process.env.API_KEY,
     },
   };
 }

@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 
 import * as React from "react";
+import Head from "next/head";
 
 import {
   NextUIProvider,
@@ -15,6 +16,7 @@ import {
   Grid,
   Image,
 } from "@nextui-org/react";
+const { NavNotLogged } = require("@/components/Nav");
 
 export default function Register() {
   const router = useRouter();
@@ -46,12 +48,16 @@ export default function Register() {
 
   return (
     <NextUIProvider>
-      <Spacer y={1} />
-      <Spacer y={2.5} />
+      <Head>
+        <title>Register</title>
+        <link rel="shortcut icon" href="/Lyre.png" />
+      </Head>
+      <NavNotLogged />
+      <Spacer y={2} />
       <Row gap={1}>
         <Card css={{ $$cardColor: "#daa520", mw: "600px", margin: "auto" }}>
           <Card.Body>
-            <Text h6 align="center" size={36} css={{ m: 0 }}>
+            <Text h6 align="center" size={40} css={{ m: 0 }}>
               Register
             </Text>
             <Spacer y={2.5} />
