@@ -17,7 +17,7 @@ import {
 import styles from "@/styles/styles.module.css";
 import useDownloader from "react-use-downloader";
 const { database, storage } = require("@/components/firebase");
-//imports for lirbraries used
+//imports for libraries used
 function Orpheus({ userID, endpoint, api_key }) {
   const [confidence, setConfidence] = useState([]);
   const [features, setFeatures] = useState("");
@@ -50,7 +50,7 @@ function Orpheus({ userID, endpoint, api_key }) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }, [messages]);
     //messages allows for use effect to change dependent on it
-    // console.log(isLoading);
+
     return (
       <div className={styles.chatWindowStyle} ref={chatWindowRef}>
         {isLoading ? (
@@ -58,7 +58,7 @@ function Orpheus({ userID, endpoint, api_key }) {
         ) : (
           <div className={styles.messageContainerStyle}>
             {messages.map((message, index) => (
-              <div key={index} className={styles.messageStyle}>
+              <div key={index}  className={typeof message == "string" ? (message.substring(0,7) == "Orpheus" ? styles.messageStyle : styles.messageStyle2) : styles.messageStyle }>
                 {message}
               </div>
             ))}

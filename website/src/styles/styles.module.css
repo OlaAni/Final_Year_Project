@@ -57,6 +57,12 @@
 
 .messageStyle{
   border: 1px solid #000000;
+  background-color: #daa520;
+}
+
+.messageStyle2{
+  border: 1px solid #000000;
+  background-color: white;
 }
 
 .navbarStyle{
