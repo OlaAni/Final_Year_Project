@@ -166,7 +166,8 @@ def confidence_score(proba):
 
 #extract mfeatures from a song
 def extract_features(file):
-    before = time.time()
+    if(DEBUG_LEVEL>1):
+        before = time.time()
 
     y, sr = librosa.load(file,  duration=30)
 
@@ -184,7 +185,8 @@ def extract_features(file):
                              'rolloff_mean':[rolloff.mean()],'rolloff_var':[rolloff.var()],'zero_crossing_rate_mean':[zero_crossing_rate.mean()],'zero_crossing_rate_var':[zero_crossing_rate.var()],
                              'harmony_mean':[harmony.mean()],'harmony_var':[harmony.var()],'tempo':[tempo],})
     
-    after = time.time()
+    if(DEBUG_LEVEL>1):
+        after = time.time()
 
     features = features.reindex(columns=cols_for_model)
     if(DEBUG_LEVEL>6):
@@ -196,53 +198,56 @@ def extract_features(file):
 
 #search youtube for a song
 def search(query):
+    if(DEBUG_LEVEL>1):
+        before = time.time()
 
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
     search_response = youtube.search().list(q=query,type='video',part='id,snippet',maxResults=1).execute()
 
-
-
     for search_result in search_response.get('items', []):
         video_id = search_result['id']['videoId']
         video_url = f'https://www.youtube.com/watch?v={video_id}'
 
-        url = video_url
-
-    video = YouTube(url)
+    video = YouTube(video_url)
+    
     if(video.age_restricted):
         return True, True
 
     video_duration_seconds = video.length
     video_duration_minutes = video_duration_seconds / 60
 
-    if video_duration_minutes < 6 and video_duration_minutes> 1:
+    if video_duration_minutes < 6 and video_duration_minutes > 1:
         stream = video.streams.filter(only_audio=True).first()
         stream.download(filename=f"searchedSong.mp3")
         sound = AudioSegment.from_file(r"searchedSong.mp3")
 
-        start_time = (len(sound) // 2) + 15 * 1000  
+        start_time = (video_duration_seconds // 2) * 1000  
         end_time = start_time + 30 * 1000  
 
         audio_segment = sound[start_time:end_time]
-
         audio_segment.export(r"searchedSong.mp3", format="mp3")
+
+
+        if(DEBUG_LEVEL>1):
+            after = time.time()
+            print("TimeToSearch: ", after-before)
+
         return True, False
+    
     return False, False
     
 def search_spotify(genres, tempo):
     client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET)
     spotifySearcher = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-
-
-    seed_genres = [genres]
+    seed_genre = [genres]
     target_tempo = int(tempo)
     min = target_tempo * 0.5
     max = target_tempo * 1.5
 
-    print(seed_genres)
-    recommendations = spotifySearcher.recommendations(seed_genres=seed_genres,  target_tempo=(min, max))
+    print(seed_genre)
+    recommendations = spotifySearcher.recommendations(seed_genres=seed_genre,  target_tempo=(min, max))
 
     if recommendations['tracks']:
         song = recommendations['tracks'][0]
@@ -265,14 +270,13 @@ matcher = Matcher(nlp.vocab)
 
 patterns = [
     [{"LOWER": "hello"}],
-    [{"LOWER": "hi"}],
     [{"LOWER": "help"}, {"LOWER": "me"}, {"LOWER": "please"}],
     [{"LOWER": "find"},{"LOWER": "me"},{"LOWER": "songs"},{"LOWER": "like"},{"LOWER": "this"}],
     [{"LOWER": "find"}, {"LOWER": "similiar"}, {"LOWER": "songs"}],
     [{"LOWER": "what"}, {"LOWER": "is"}],
     [{"LOWER": "increase"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
     [{"LOWER": "decrease"}, {"LOWER": "the"}, {"LOWER": {"REGEX": ".*"}}],
-
+    [{"LOWER": "i"}, {"LOWER": "like"},  {"LOWER": {"REGEX": ".*"}}],
 ]
 
 responses = {

@@ -41,21 +41,21 @@ function Nav() {
           style={{ fontSize: "30px" }}
           href="/"
         >
-          Orpheus
+          ORPHEUS
         </Link>
         <Link
           className={styles.linkStyle}
           style={{ fontSize: "30px" }}
           href="/profile"
         >
-          Profile
+          PROFILE
         </Link>
         <Link
           className={styles.linkStyle}
           style={{ fontSize: "30px" }}
           href="/about"
         >
-          About
+          ABOUT
         </Link>
         <div className={styles.logoutContainerStyle}>
           <Button
@@ -63,7 +63,7 @@ function Nav() {
             style={{ background: "red" }}
             onClick={handler}
           >
-            Logout
+            LOGOUT
           </Button>
         </div>
       </div>
@@ -91,7 +91,7 @@ function NavNotLogged() {
           style={{ fontSize: "30px" }}
           href="/about"
         >
-          About
+          ABOUT
         </Link>
       </div>
     </>

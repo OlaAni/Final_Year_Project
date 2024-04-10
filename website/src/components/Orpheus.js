@@ -15,8 +15,8 @@ import {
   Popover,
 } from "@nextui-org/react";
 import styles from "@/styles/styles.module.css";
-import useDownloader from "react-use-downloader";
 const { database, storage } = require("@/components/firebase");
+
 //imports for lirbraries used
 function Orpheus({ userID, endpoint, api_key }) {
   const [confidence, setConfidence] = useState([]);
@@ -29,17 +29,7 @@ function Orpheus({ userID, endpoint, api_key }) {
     "Orpheus: if you get really stuck, type help me please for detailed breakdown of features",
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isChecked, setisChecked] = useState(false);
-  const { size, elapsed, percentage, cancel, error, isInProgress } =
-    useDownloader();
-
-  const { download } = useDownloader({
-    mode: "no-cors",
-    credentials: "include",
-    headers: {
-      Authorization: "Bearer TOKEN",
-    },
-  });
+  const [isChecked, setisChecked] = useState(true);
 
   //controls chat window, scrolls to the bottom of window with each new image
   //each new image is added to the array
@@ -491,7 +481,12 @@ function Orpheus({ userID, endpoint, api_key }) {
               className={styles.fileInputStyle}
             />
           </div>
-
+          <AudioPlayer
+            showJumpControls={false}
+            autoPlayAfterSrcChange={false}
+            src={"g"}
+            onPlay={(e) => console.log("onPlay")}
+          />
           <Spacer y={3} />
           <Text className={styles.sectionTitleStyle}>Confidence Breakdown</Text>
           <div className={styles.centeredContainer}>
