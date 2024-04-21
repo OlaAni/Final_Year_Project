@@ -55,7 +55,8 @@ cols_for_model = xgb.get_booster().feature_names
 
 #find sim music function
 def find_sim(data):
-    placeHoldername = 'test'
+
+    placeHoldername = 'Changed Song'
     data['filename'] = placeHoldername
 
     df_sim = pd.read_csv(r'music_data/features_30_sec.csv')
@@ -82,9 +83,10 @@ def find_sim(data):
     # Finding 3 highest values
     series = k.most_common(3) 
 
-    if(DEBUG_LEVEL>5):
+    if(DEBUG_LEVEL>4):
         for i in series:
             print(i[0]," :",i[1]," ")
+
 
     return series
 
@@ -126,7 +128,7 @@ def find_pred(result):
         model.fit(X_train, y_train)
         prediction = model.predict(X_test)
         features.loc[0, column] = prediction[0]
-        if(DEBUG_LEVEL>3):
+        if(DEBUG_LEVEL>5):
             print(column,":",prediction[0])
 
 
@@ -185,13 +187,13 @@ def extract_features(file):
                              'rolloff_mean':[rolloff.mean()],'rolloff_var':[rolloff.var()],'zero_crossing_rate_mean':[zero_crossing_rate.mean()],'zero_crossing_rate_var':[zero_crossing_rate.var()],
                              'harmony_mean':[harmony.mean()],'harmony_var':[harmony.var()],'tempo':[tempo],})
     
-    if(DEBUG_LEVEL>1):
-        after = time.time()
 
     features = features.reindex(columns=cols_for_model)
+
     if(DEBUG_LEVEL>6):
         print(features)
     if(DEBUG_LEVEL>1):
+        after = time.time()
         print("TimeToExtract: ", after-before)
 
     return features
@@ -255,7 +257,7 @@ def search_spotify(genres, tempo):
         artist_name = song['artists'][0]['name']
         song_link = song['external_urls']['spotify']
 
-        if(DEBUG_LEVEL>2):
+        if(DEBUG_LEVEL>5):
             print(song_link)
             print(song)
 
@@ -302,7 +304,6 @@ responses = {
         [{"LOWER": "recos"}],
         [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"},{"LOWER": "for"},{"LOWER": "me"}],
         [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"}],
-        [{"LOWER": "i"},{"LOWER": "want"},{"LOWER": "a"},{"LOWER": "song"}],
         [{"LOWER": "a"},{"LOWER": "recommendation"}],
     ],
 
@@ -417,6 +418,7 @@ brighter_words = ["darker", "sadder"]
 
 #how the chat responds to the user
 def chatbot_response(user_input, features1=None, userID=None):
+
     user_input = user_input.lower()
     doc = nlp(user_input)
     matches = matcher(doc)
@@ -561,6 +563,8 @@ def chatbot_response(user_input, features1=None, userID=None):
                     new_features[features]+= value
                     songs = find_sim(new_features)
                     randomness = random.randint(0,9)
+
+
                     if(randomness>5):
                         return "Here are some of those increased features", songs, features1,None,None
                     else:
@@ -609,6 +613,7 @@ def chatbot_response(user_input, features1=None, userID=None):
                     new_features[features]+= value
                     songs = find_sim(new_features)
                     randomness = random.randint(0,9)
+
                     if(randomness>5):
                         return "Here are some of those increased features", songs, features1,None,None
                     else:
@@ -623,12 +628,9 @@ def chatbot_response(user_input, features1=None, userID=None):
             else:
                 sim = find_sim(features1)
                 songs=[]
-                if(DEBUG_LEVEL>4):
-                    for key, value in sim.items():
-                        print(key," :",round(value,2),"% similiar")
 
                 label = label_encoder.inverse_transform(features1['label'])[0]
-                spotifySong = "Recommendation from Spotify: "+search_spotify(label,features1['tempo'])
+                spotifySong =search_spotify(label,features1['tempo'])
                     
                 return "Similiar Songs", sim,features1, spotifySong,None            
         elif category=="general":
@@ -646,6 +648,7 @@ def chatbot_response(user_input, features1=None, userID=None):
 
             if pred is None:
                 return "Upload some more songs", None,None, None,None
+            
             sim = find_sim(pred)
 
 
@@ -660,7 +663,7 @@ def chatbot_response(user_input, features1=None, userID=None):
             genreProb = xgb.predict_proba(pred_df)
             high = confidence_score(genreProb)
 
-            if(DEBUG_LEVEL>3):
+            if(DEBUG_LEVEL>5):
                 print(pred_df)
                 print(high)
 
@@ -709,7 +712,7 @@ def upload():
 
         data = request.files['music_file']
 
-        if(DEBUG_LEVEL>1):
+        if(DEBUG_LEVEL>5):
             print(data.content_type)
 
         filetype = data.filename.rsplit('.',1)[1]
@@ -727,7 +730,8 @@ def upload():
         features = features.to_json(orient='records')
         return jsonify({"status":"OK","Orpheus": response,"features":features, "confidence":high}), 200
     except Exception as e:
-        print(e)
+        if(DEBUG_LEVEL>1):
+            print(e)
         return jsonify({"status": "Server Error", "Orpheus": "Uh oh"}), 500
 
 
@@ -742,7 +746,9 @@ def chatbot():
         data = request.get_json()
         if(data.get('features')!=None):
             features1 = data.get('features')
+            print(features1)
             features1 = pd.read_json(features1)
+
         else:
             features1=None
 
@@ -764,7 +770,8 @@ def chatbot():
 
         return jsonify({"status":"OK","Orpheus": response,"songs":songs, "features": features,"recommendation": recommendation,"confidence":high }),200
     except Exception as e:
-        print(e)
+        if DEBUG_LEVEL>0:
+            print(e)
         return jsonify({"status": "Server Error", "Orpheus": "Uh oh"}), 500
 if __name__ == '__main__':
     app.run(debug=True)
