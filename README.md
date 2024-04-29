@@ -28,6 +28,7 @@ Use this command to create a new rquirements text
 ```bash
 python -m pipreqs.pipreqs #install requirement
 ```
+## Make sure to set Set up env files
 
 ## Chatbot Features
 
