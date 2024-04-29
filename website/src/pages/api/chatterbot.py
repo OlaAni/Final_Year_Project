@@ -285,6 +285,8 @@ responses = {
     "greetings": [
         [{"LOWER": "hello"}],
         [{"LOWER": "hi"}],
+        [{"LOWER": "yo"}],
+
     ],
     "inquiries": [
         [{"LOWER": "help"}, {"LOWER": "me"}, {"LOWER": "please"}],
@@ -302,9 +304,10 @@ responses = {
  
     "predicitions": [
         [{"LOWER": "recos"}],
-        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"},{"LOWER": "for"},{"LOWER": "me"}],
-        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": "recommendation"}],
-        [{"LOWER": "a"},{"LOWER": "recommendation"}],
+        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": {"FUZZY": "recommendation"}},{"LOWER": "for"},{"LOWER": "me"}],
+        [{"LOWER": "do"},{"LOWER": "you"},{"LOWER": "have"},{"LOWER": "a"},{"LOWER": {"FUZZY": "recommendation"}}],
+        [{"LOWER": "i"},{"LOWER": "might"}],
+
     ],
 
     "find_sim": [
@@ -366,7 +369,8 @@ def general(user_input):
         newString="Tempo represents the amount of beats per minute within an audio file."
     elif "beats" in user_input or "zero_crossing_rate" in user_input:
         newString=" Beats or Zero Crossing rate represents the average amount the signal of an audio file changes its sign. A value below 0.1 would be considered low"
-
+    else:
+        newString = "I'm sorry, I don't understand that, maybe type it a bit more clearer??."
     return newString
 
 def give_me_a_song(user_input):
@@ -429,7 +433,7 @@ def chatbot_response(user_input, features1=None, userID=None):
             print(f"Matched category: {category}")
 
         if category == "greetings":
-            return "Hello! How can I assist you?",None,None,None,None
+            return "Let's Get Started already, I'm ready to go!!!",None,None,None,None
         elif category == "inquiries":
            strLabel ="hello: for greetings, increase the <insert feature here>: for changing a songs features,do you have recommendations or recos: for a nice recommendation, search for similar songs: for.. well its in the name, i like <insert blank>: i solemnly swear to search for this.., want something random, type give me a <insert_genre>: for a surprise, also be sure to double check when you want to leave me, i will not be saving our previous texts"
            return strLabel,None,None,None,None      
