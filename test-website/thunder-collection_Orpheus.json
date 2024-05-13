@@ -1,20 +1,21 @@
 {
-    "client": "Thunder Client",
+    "clientName": "Thunder Client",
     "collectionName": "Orpheus",
-    "dateExported": "2024-04-10T19:56:21.453Z",
-    "version": "1.1",
+    "collectionId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
+    "dateExported": "2024-04-29T19:30:49.191Z",
+    "version": "1.2",
     "folders": [],
     "requests": [
         {
-            "_id": "d483bdb8-815c-4985-a62d-7edbb6b85fbc",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "2ff57676-23b3-4294-8375-9f6f6685d931",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "Chat",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 10000,
-            "created": "2024-04-09T09:04:31.290Z",
-            "modified": "2024-04-10T11:13:22.790Z",
+            "created": "2024-04-10T19:58:37.580Z",
+            "modified": "2024-04-29T07:29:13.246Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -31,10 +32,9 @@
                     "isDisabled": true
                 }
             ],
-            "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"hi\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
+                "raw": "{\n  \"user_input\": \"yo\",\n  \"userID\": \"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
             "tests": [
@@ -54,20 +54,20 @@
                     "type": "res-body",
                     "custom": "",
                     "action": "equal",
-                    "value": "{\"Orpheus\":\"Hello! How can I assist you?\",\"confidence\":null,\"features\":null,\"recommendation\":null,\"songs\":null,\"status\":\"OK\"}"
+                    "value": "{\"Orpheus\":\"Let's Get Started already, I'm ready to go!!!\",\"confidence\":null,\"features\":null,\"recommendation\":null,\"songs\":null,\"status\":\"OK\"}"
                 }
             ]
         },
         {
-            "_id": "68e7b3e0-8dbe-4752-a865-62289cb33ed5",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "decc9d7f-62da-4b3b-82f4-26ead84306e4",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "Upload_Success",
             "url": "http://127.0.0.1:5000/upload",
             "method": "GET",
             "sortNum": 20000,
-            "created": "2024-04-09T09:04:31.291Z",
-            "modified": "2024-04-10T11:11:06.498Z",
+            "created": "2024-04-10T19:58:37.581Z",
+            "modified": "2024-04-10T20:00:54.576Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -92,7 +92,7 @@
                 "files": [
                     {
                         "name": "music_file",
-                        "value": "c:\\Users\\User\\Desktop\\Final_Year_Project\\music\\library_music\\nutcracker.mp3"
+                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\music\\library_music\\nutcracker.mp3"
                     }
                 ]
             },
@@ -106,15 +106,15 @@
             ]
         },
         {
-            "_id": "179e32ee-702a-457a-8de7-ef84e6f41d61",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "2bafa008-61c6-4383-bf53-93c3df7ccf85",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "Upload_Fail",
             "url": "http://127.0.0.1:5000/upload",
             "method": "GET",
             "sortNum": 25000,
-            "created": "2024-04-09T09:04:31.297Z",
-            "modified": "2024-04-10T11:15:34.601Z",
+            "created": "2024-04-10T19:58:37.586Z",
+            "modified": "2024-04-10T20:00:02.052Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -139,7 +139,7 @@
                 "files": [
                     {
                         "name": "music_file",
-                        "value": "c:\\Users\\User\\Desktop\\Final_Year_Project\\website\\src\\pages\\api\\requirements.txt"
+                        "value": "c:\\Users\\olami\\Desktop\\Final_Year_Project\\website\\src\\pages\\api\\requirements.txt"
                     }
                 ]
             },
@@ -159,15 +159,15 @@
             ]
         },
         {
-            "_id": "0f01c18d-9d6c-4b07-b30c-56e3177fa131",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "db43b236-9eeb-455f-8847-29e4aaeeb557",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "search",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 30000,
-            "created": "2024-04-09T09:04:31.292Z",
-            "modified": "2024-04-10T11:11:36.326Z",
+            "created": "2024-04-10T19:58:37.582Z",
+            "modified": "2024-04-10T19:58:37.582Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -200,15 +200,15 @@
             ]
         },
         {
-            "_id": "0f60c5d1-3ed7-4f90-938a-bcf882d5752b",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "35158f8e-a29d-45a8-a9bd-af843886a741",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "Recommendation",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 40000,
-            "created": "2024-04-09T09:04:31.293Z",
-            "modified": "2024-04-10T11:10:19.177Z",
+            "created": "2024-04-10T19:58:37.583Z",
+            "modified": "2024-04-29T07:22:02.491Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -225,10 +225,9 @@
                     "isDisabled": true
                 }
             ],
-            "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"recos\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
+                "raw": "{\n  \"user_input\":\"do you have a reccommendation\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\"\n}",
                 "form": []
             },
             "tests": [
@@ -241,15 +240,15 @@
             ]
         },
         {
-            "_id": "a1d6a166-d62e-404b-a5ea-508e38b1c2e2",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "4c4d0915-fef1-4442-b9a0-e5f73c2667c4",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "find_change",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 50000,
-            "created": "2024-04-09T09:04:31.294Z",
-            "modified": "2024-04-10T11:11:24.195Z",
+            "created": "2024-04-10T19:58:37.584Z",
+            "modified": "2024-04-12T17:10:23.573Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -269,7 +268,7 @@
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"increase the tempo\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
+                "raw": "{\n  \"user_input\":\"increase the tempo\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"newFile\\\"}]\"\n}",
                 "form": []
             },
             "tests": [
@@ -282,15 +281,56 @@
             ]
         },
         {
-            "_id": "3c516543-6e20-4383-a83c-345f535a6737",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "a572ca06-4226-45c3-b01b-f2b9bd1d3cfd",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
+            "containerId": "",
+            "name": "similar search",
+            "url": "http://127.0.0.1:5000/chat",
+            "method": "GET",
+            "sortNum": 52500,
+            "created": "2024-04-12T15:55:04.945Z",
+            "modified": "2024-04-12T16:03:35.172Z",
+            "headers": [
+                {
+                    "name": "api-key",
+                    "value": "ifqELKa4nN0kzF2vzF7mtdVTQ"
+                },
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"user_input\":\"search for songs like this\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
+                "form": []
+            },
+            "tests": [
+                {
+                    "type": "res-code",
+                    "custom": "",
+                    "action": "equal",
+                    "value": "200"
+                }
+            ]
+        },
+        {
+            "_id": "5fca3335-a60d-478c-ad63-01b3d5720dac",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "find_change2",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 55000,
-            "created": "2024-04-10T11:16:26.304Z",
-            "modified": "2024-04-10T11:16:42.903Z",
+            "created": "2024-04-10T19:58:37.587Z",
+            "modified": "2024-04-12T17:12:16.438Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -310,7 +350,7 @@
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"user_input\":\"make it faster\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"test\\\"}]\"\n}",
+                "raw": "{\n  \"user_input\":\"make it faster\",\n  \"userID\":\"Kz3tfPBVmRhmGcGxdqn4tXe5GRJ2\",\n   \"features\": \"[{\\\"chroma_stft_mean\\\":0.4431695658,\\\"chroma_stft_var\\\":0.0751257613,\\\"harmony_mean\\\":-0.0000022208,\\\"harmony_var\\\":0.0153575856,\\\"rms_mean\\\":0.0679796618,\\\"rms_var\\\":0.0097329319,\\\"rolloff_mean\\\":5037.0652111338,\\\"rolloff_var\\\":4039900.5806794623,\\\"spectral_bandwidth_mean\\\":2719.9019443489,\\\"spectral_bandwidth_var\\\":209659.0156949366,\\\"spectral_centroid_mean\\\":2078.5093711505,\\\"spectral_centroid_var\\\":144622.6622556406,\\\"tempo\\\":107.666015625,\\\"zero_crossing_rate_mean\\\":0.0559311246,\\\"zero_crossing_rate_var\\\":0.0008699122,\\\"label\\\":6.0,\\\"filename\\\":\\\"newFile\\\"}]\"\n}",
                 "form": []
             },
             "tests": [
@@ -323,15 +363,15 @@
             ]
         },
         {
-            "_id": "596295bc-1ce4-4786-981b-7711addb6023",
-            "colId": "8dbdcb51-4701-477b-90ea-20c2b89c4371",
+            "_id": "677135f4-19a9-4d7c-a577-a417ee0f0536",
+            "colId": "a27e1ac3-393d-45ff-abd6-eb752998d568",
             "containerId": "",
             "name": "give_me_a_song",
             "url": "http://127.0.0.1:5000/chat",
             "method": "GET",
             "sortNum": 60000,
-            "created": "2024-04-09T09:04:31.296Z",
-            "modified": "2024-04-10T11:10:42.869Z",
+            "created": "2024-04-10T19:58:37.585Z",
+            "modified": "2024-04-10T19:58:37.585Z",
             "headers": [
                 {
                     "name": "api-key",
@@ -363,5 +403,6 @@
                 }
             ]
         }
-    ]
+    ],
+    "ref": "Xbz59WVXXrQnmDNi6ZqoXhgcG-FPhfGgbAzrvaHVlazoN5p0obe9ntZljkG8oMGO_cBZ7lQ2QSFyYWg21eHwhA"
 }
